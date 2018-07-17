@@ -1,14 +1,3 @@
-# Nick's implementation of multiwindow shiny for campfire
-# Three windows: The controller, wall, and floor are hard
-# coded, and any shiny objects are supported inside each
-# window. This gives more flexibility than the other
-# multiwindow shiny which can only display plotly objects
-#
-# UPDATED: 23 May 2018 (JSE): 
-#    * Monitor window added; 
-#    * css for centering added; 
-#    * verified on Shiny Server
-
 ###############################################################################
 # DATA FUNCTIONS
 ###############################################################################
