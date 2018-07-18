@@ -3,8 +3,8 @@ library(visNetwork)
 library(rtweet)
 library(shinythemes)
 library(tidyverse)
-library(igraph)
 
+source("functions.R")
 source("campfire_lib.R")
 
 ###############################################################################
@@ -58,7 +58,7 @@ campfireApp(
     if(!is.null(serverValues$nodes)) {
         visNetwork(serverValues$nodes, serverValues$edges) %>%
           visEdges(scaling = list("min" = 0), smooth = list("enabled" = TRUE)) %>%
-          visNodes(scaling = list("min" = 10, "max" = 30)) %>%
+          visNodes(scaling = list("min" = 0, "max" = 30)) %>%
           # After drawing the network, center on 0,0 to keep position
           # independant of node number
           visEvents(type = "once", afterDrawing = "function() {
