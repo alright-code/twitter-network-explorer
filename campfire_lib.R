@@ -27,64 +27,32 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   
   serverValues <- reactiveValues()
   
+  # Default serverValues variables
   serverValues$type <- "prescreen"
   serverValues$current_edge_index <- 0
   serverValues$current_node_id <- 0
   
+  serverValues$data <- GetData(default.query.c,
+                               500,
+                               FALSE)
+  serverValues$wall <- isolate(UpdateWall(serverValues$data, default.query.c))
+  serverValues$edges <- isolate(GetEdges(serverValues$data, default.query.c))
+  serverValues$nodes <- isolate(GetNodes(serverValues$data, default.query.c))
+  serverValues$type <- "none"
+  
   campfire_server <- shinyServer(function(input, output) {
     
-    UpdateWall <- reactive({
-      serverValues$wall <- fluidRow(
-        lapply(c(10:1,12,11), function(x) {
-          if(x > length(serverValues$query.c)) {
-            column(width = 1,
-                   offset = 0)
-          } else {
-            data.subset <- GetDataSubset(serverValues$data, serverValues$query.c[[x]])
-            column(width = 1,
-                   offset = 0,
-                   tags$div(
-                     style = 'height: 780px;
-                     overflow-y: auto;
-                     overflow-x: hidden;',
-                     includeCSS("wall.css"),
-                     tags$h2(serverValues$query.c[[x]]),
-                     if(nrow(data.subset) > 0) {
-                       lapply(1:nrow(data.subset), function(y) {
-                         tags$div(style = 'border: 2px solid #000000',
-                                  tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")),
-                                  tags$p(data.subset$text[[y]]),
-                                  tags$header(
-                                    tags$h3("Favorites:"),
-                                    tags$span(data.subset$favorite_count[[y]])
-                                  ),
-                                  tags$header(
-                                    tags$h3("Retweets:"),
-                                    tags$span(data.subset$retweet_count[[y]])
-                                  )
-                         )
-                       })
-                     }
-                   )
-            )
-          }
-        })
-      ) 
-    })
-    
-    UpdateFloor <- reactive({
-      serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
-      serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
-      serverValues$type <- "none"
-    })
-    
+    # Observe when update button is pressed, the read in data and update
+    # corresponding areas
     observeEvent(input$update, {
       serverValues$query.c <- default.query.c
       serverValues$data <- GetData(serverValues$query.c,
                                    serverValues$numberOfTweets,
-                                   FALSE)
-      UpdateWall()
-      UpdateFloor()
+                                   TRUE)
+      serverValues$wall <- UpdateWall(serverValues$query.c, serverValues$data)
+      serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
+      serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
+      serverValues$type <- "none"
     })
     
     # Actions to be taken when edge or node selection is changed

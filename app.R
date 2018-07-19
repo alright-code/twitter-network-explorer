@@ -3,6 +3,7 @@ library(visNetwork)
 library(rtweet)
 library(shinythemes)
 library(tidyverse)
+library(shinyjs)
 
 source("functions.R")
 source("campfire_lib.R")
@@ -70,7 +71,7 @@ campfireApp(
                     scale: 1
             })}") %>%
           visPhysics(stabilization = FALSE, enabled = FALSE) %>%
-          visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
+          # visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
           # Define behavior when clicking on nodes or edges
           visEvents(selectEdge = "function(properties) {
                                   Shiny.onInputChange('current_edge_index', this.body.data.edges.get(properties.edges[0]).index);

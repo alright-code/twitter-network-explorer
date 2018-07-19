@@ -186,3 +186,62 @@ StringQueryToVector <- function(query.string) {
   query.c <- unlist(strsplit(query.c, " "))
   return(query.c)
 }
+
+UpdateWall <- function(data, query.c) {
+  fluidRow(
+    lapply(c(10:1,12,11), function(x) {
+      if(x > length(query.c)) {
+        column(width = 1,
+               offset = 0)
+      } else {
+        data.subset <- GetDataSubset(data, query.c[[x]])
+        column(width = 1,
+               offset = 0,
+               tags$div(
+                 style = 'height: 780px;
+                 overflow-y: auto;
+                 overflow-x: hidden;',
+                 includeCSS("wall.css"),
+                 tags$h2(query.c[[x]]),
+                 if(nrow(data.subset) > 0) {
+                   lapply(1:nrow(data.subset), function(y) {
+                     colored.text <- ColorHashtags(data.subset$text[[y]], query.c)
+                     tags$div(style = 'border: 2px solid #000000',
+                              tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")),
+                              tags$p(HTML(colored.text)),
+                              tags$header(
+                                tags$h3("Favorites:"),
+                                tags$span(data.subset$favorite_count[[y]])
+                              ),
+                              tags$header(
+                                tags$h3("Retweets:"),
+                                tags$span(data.subset$retweet_count[[y]])
+                              )
+                     )
+                   })
+                 }
+               )
+        )
+      }
+    })
+  )
+}
+
+# Color the hashtags in a string using HTML
+ColorHashtags <- function(string, query.c) {
+  string.c <- unlist(strsplit(string, "[ (\n)]"))
+  hashtag.indices <- grep("#", string.c)
+  colored.string.c <- lapply(1:length(string.c), function(x) {
+    if(x %in% hashtag.indices) {
+      if(toupper(string.c[[x]]) %in% toupper(query.c)) {
+        paste('<font color="#1D8DEE">', string.c[[x]], '</font>')
+      } else {
+        paste('<font color="#cc6666">', string.c[[x]], '</font>')  
+      }
+    } else {
+      string.c[[x]]
+    }
+  })
+  colored.string <- paste(colored.string.c, collapse = " ")
+  return(colored.string)
+}
