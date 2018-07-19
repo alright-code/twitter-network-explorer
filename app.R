@@ -5,8 +5,8 @@ library(shinythemes)
 library(tidyverse)
 library(shinyjs)
 
-source("functions.R")
-source("campfire_lib.R")
+source("~/ShinyApps/TwitterBrowserMW/functions.R")
+source("~/ShinyApps/TwitterBrowserMW/campfire_lib.R")
 
 ###############################################################################
 # MULTIWINDOW SHINY

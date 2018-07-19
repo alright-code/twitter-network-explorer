@@ -201,7 +201,7 @@ UpdateWall <- function(data, query.c) {
                  style = 'height: 780px;
                  overflow-y: auto;
                  overflow-x: hidden;',
-                 includeCSS("wall.css"),
+                 includeCSS("~/ShinyApps/TwitterBrowserMW/wall.css"),
                  tags$h2(query.c[[x]]),
                  if(nrow(data.subset) > 0) {
                    lapply(1:nrow(data.subset), function(y) {
