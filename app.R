@@ -104,7 +104,37 @@ campfireApp(
     })
     
     output$tweets.info <- renderUI({
-      serverValues$tweets.info
+      # Stuff to print when node is selected
+      if(serverValues$type == "node") {
+        node.name <- serverValues$current_node_id
+        node.size <- serverValues$nodes$value[serverValues$nodes$id == serverValues$current_node_id]
+        str1 <- paste("<font color=", color.white, "> Current Node: ", node.name, "</font>", sep = "")
+        str2 <- paste("<font color=", color.white, "> Node Size: ", node.size, "</font>", sep = "")
+        HTML(paste(str1, str2, sep = '<br/>'))
+      }
+      # Stuff to print when edge is selected
+      # Percent Commonality
+      else if(serverValues$type == "edge") {
+        edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
+        query <- c(as.character(edge$to), as.character(edge$from))
+        edge.name <- paste(query, collapse = " AND ")
+        edge.size <- serverValues$edges$value[serverValues$edges$index == serverValues$current_edge_index]
+        str1 <- paste("<font color=", color.white, "> Current Edge: ", edge.name, "</font>", sep = "")
+        str2 <- paste("<font color=", color.white, "> Edge Size: ", edge.size, "</font>", sep = "")
+        HTML(paste(str1, str2, sep = '<br/>'))
+      }
+      # Stuff to print when nothing is selected
+      else if(serverValues$type == "none") {
+        num.tweets.found <- nrow(serverValues$data)
+        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", num.tweets.found, "</font>", sep = "")
+        str2 <- "placeholder"
+        HTML(paste(str1, str2, sep = '<br/>'))
+      }
+      # Stuff to print before a network is created
+      else if(serverValues$type == "prescreen") {
+        str1 <- "Welcome to the Campfire Twitter Network Explorer!"
+        HTML(str1)
+      }
     })
     
     output$wall.ui <- renderUI({
