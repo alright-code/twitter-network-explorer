@@ -11,9 +11,11 @@ source("wall.R")
 source("campfire_lib.R")
 
 ###Colors###
+color.green <- "#1dee7e"
+color.pink <- "#ee1d8d"
+color.orange <- "#ee7e1d"
 color.white <- "#f0f0f0"
 color.blue <- "#1D8DEE"
-color.red <- "#1D8DEE"
 color.back <- "#151E29"
 color.offback <- "#1B2737"
 
