@@ -12,6 +12,7 @@ source("campfire_lib.R")
 ###Colors###
 color.white <- "#f0f0f0"
 color.blue <- "#1D8DEE"
+color.red <- "#1D8DEE"
 color.back <- "#151E29"
 color.offback <- "#1B2737"
 
@@ -29,7 +30,7 @@ campfireApp(
                 min = 50, max = 10000, value = 500),
     actionButton(inputId = "update",
                  label = "Update"),
-    style="position: absolute; 
+    style = "position: absolute; 
     top: 50%; left: 50%; 
     margin-right: -50%; 
     transform: translate(-50%, -50%)"
@@ -37,29 +38,34 @@ campfireApp(
   
   wall = div(
     uiOutput("wall.ui"),
-    style="background: #151E29;
-           scroll: hidden;"
+    style = paste("background: ", color.back, "; scroll: hidden;",
+                 sep = "")
   ),
   
   floor = div(
     visNetworkOutput("network", width = "1920px", height = "1080px"),
-    style="position: absolute; 
+    style = paste("position: absolute; 
            top: 50%; left: 50%;
            margin-right: -50%; 
            transform: translate(-50%, -50%);
-           background: #151E29;"
+           background: ", color.back, ";", sep = "")
   ),
   
   monitor = div(fluidPage(
     fluidRow(
       column(6,
-             plotOutput("top.users.bar.extern")
+             plotOutput("top.users.bar.extern", height = "788px")
              ),
       column(6,
-             plotOutput("top.hashtags.bar.extern")
+             plotOutput("top.hashtags.bar.extern", height = "788px")
+             )
+    ),
+    fluidRow(
+      column(12,
+             uiOutput("tweets.info")
              )
     )),
-    style="background: #151E29;"
+    style = paste("background: ", color.back, ";", sep = "")
   ),
   
   serverFunct = function(serverValues, output) {
@@ -106,32 +112,38 @@ campfireApp(
     })
     
     output$top.users.bar.extern <- renderPlot({
-      serverValues$data.subset %>% 
-        count(screen_name) %>% 
-        arrange(desc(n)) %>%
-        slice(1:5) %>%
-        ggplot(aes(reorder(screen_name, n), n)) + 
-          geom_col(fill = "#1D8DEE", color = "#1D8DEE") + 
+      if(!is.null(serverValues$data.subset)) {
+        serverValues$data.subset %>% 
+          count(screen_name) %>% 
+          arrange(desc(n)) %>%
+          slice(1:5) %>%
+          ggplot(aes(reorder(screen_name, n), n)) + 
+          geom_col(fill = color.blue, color = color.blue) + 
           coord_flip() + 
           labs(x = "Screen Name", y = "Tweets", title = "Top 5 Users") + 
           theme_dark() +
-          theme(plot.background = element_rect(fill = "#151E29"), axis.text = element_text(colour = "#f0f0f0"), text = element_text(colour = "#1D8DEE"))
+          theme(plot.background = element_rect(fill = color.back), axis.text = element_text(colour = "#f0f0f0"), text = element_text(colour = "#1D8DEE"))
+      }
+    
     })
     
     output$top.hashtags.bar.extern <- renderPlot({
-      serverValues$data.subset %>%
-        unnest(hashtags) %>%
-        mutate(hashtags = toupper(hashtags)) %>%
-        filter(!(paste("#", hashtags, sep = "") %in% toupper(serverValues$query.c))) %>%
-        count(hashtags) %>%
-        arrange(desc(n)) %>%
-        slice(1:5) %>%
-        ggplot(aes(reorder(hashtags, n), n)) +
-          geom_col(fill = "#1D8DEE", color = "#1D8DEE") +
+      if(!is.null(serverValues$data.subset)) {
+        serverValues$data.subset %>%
+          unnest(hashtags) %>%
+          mutate(hashtags = toupper(hashtags)) %>%
+          filter(!(paste("#", hashtags, sep = "") %in% toupper(serverValues$query.c))) %>%
+          count(hashtags) %>%
+          arrange(desc(n)) %>%
+          slice(1:5) %>%
+          ggplot(aes(reorder(hashtags, n), n)) +
+          geom_col(fill = color.blue, color = color.blue) +
           coord_flip() +
           labs(x = "Hashtag", y = "Frequency", title = "Top 5 Hashtags") +
           theme_dark() +
-          theme(plot.background = element_rect(fill = "#151E29"), axis.text = element_text(colour = "#f0f0f0"), text = element_text(colour = "#1D8DEE"))
+          theme(panel.border = element_blank(), plot.background = element_rect(fill = color.back), axis.text = element_text(colour = "#f0f0f0"), text = element_text(colour = "#1D8DEE"))
+      }
+      
     })
     
   }

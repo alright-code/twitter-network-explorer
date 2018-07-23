@@ -36,23 +36,23 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
                             "#DeepLearning", "#BigData", "#data",
                             "#Programming", "#Math", "#rstats")
   
-  serverValues$data <- GetData(default.query.c,
-                               500,
-                               FALSE)
-  serverValues$wall <- isolate(UpdateWall(serverValues$data, default.query.c))
-  serverValues$edges <- isolate(GetEdges(serverValues$data, default.query.c))
-  serverValues$nodes <- isolate(GetNodes(serverValues$data, default.query.c))
+  serverValues$data <- isolate(GetData(serverValues$query.c,
+                                        500,
+                                        FALSE))
+  serverValues$wall <- isolate(UpdateWall(serverValues$data, serverValues$query.c))
+  serverValues$edges <- isolate(GetEdges(serverValues$data, serverValues$query.c))
+  serverValues$nodes <- isolate(GetNodes(serverValues$data, serverValues$query.c))
   serverValues$type <- "none"
   
-  campfire_server <- shinyServer(function(input, output, session) {
+  campfire_server <- shinyServer(function(input, output) {
     
     # Observe when update button is pressed, the read in data and update
     # corresponding areas
     observeEvent(input$update, {
-      serverValues$query.c <- default.query.c
+      serverValues$query.c <- StringQueryToVector(serverValues$query)
       serverValues$data <- GetData(serverValues$query.c,
                                    serverValues$numberOfTweets,
-                                   TRUE)
+                                   FALSE)
       serverValues$wall <- UpdateWall(serverValues$data, serverValues$query.c)
       serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
       serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
@@ -89,8 +89,8 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       if(serverValues$type == "node") {
         node.name <- serverValues$current_node_id
         node.size <- serverValues$nodes$value[serverValues$nodes$id == serverValues$current_node_id]
-        str1 <- paste("Current Node:", node.name)
-        str2 <- paste("Size of Node:", node.size)
+        str1 <- paste("<font color=", color.white, "> Current Node: ", node.name, "</font>", sep = "")
+        str2 <- paste("<font color=", color.white, "> Node Size: ", node.size, "</font>", sep = "")
         serverValues$tweets.info <- HTML(paste(str1, str2, sep = '<br/>'))
       }
       # Stuff to print when edge is selected
@@ -100,14 +100,14 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
         query <- c(as.character(edge$to), as.character(edge$from))
         edge.name <- paste(query, collapse = " AND ")
         edge.size <- serverValues$edges$value[serverValues$edges$index == serverValues$current_edge_index]
-        str1 <- paste("Current Edge:", edge.name)
-        str2 <- paste("Size of Edge:", edge.size)
+        str1 <- paste("<font color=", color.white, "> Current Edge: ", edge.name, "</font>", sep = "")
+        str2 <- paste("<font color=", color.white, "> Edge Size: ", edge.size, "</font>", sep = "")
         serverValues$tweets.info <- HTML(paste(str1, str2, sep = '<br/>'))
       }
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
         num.tweets.found <- nrow(serverValues$data)
-        str1 <- paste("Total number of tweets found:", num.tweets.found)
+        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", num.tweets.found, "</font>", sep = "")
         str2 <- "placeholder"
         serverValues$tweets.info <- HTML(paste(str1, str2, sep = '<br/>'))
       }
@@ -128,7 +128,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
     
   })
   
-  options(shiny.port = 5480)
   shinyApp(ui, server = campfire_server)
 }
 

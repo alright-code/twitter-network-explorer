@@ -78,7 +78,7 @@ GetNodesLabel <- function(nodes) {
 GetNodesColor <- function(nodes) {
   nodes.rows <- nrow(nodes)
   color <- c(length = nodes.rows)
-  color[1:nodes.rows] <- "#1D8DEE"
+  color[1:nodes.rows] <- color.blue
   return(color)
 }
 
@@ -123,10 +123,10 @@ GetToFrom <- function(data, query.c) {
   # Create a list identical to data$hashtags, but remove the hashtags not 
   #   searched for. Everything is uppercase
   matched <- lapply(data$hashtags, function(x) {
-    intersect(toupper(paste('#', x, sep = '')), toupper(query.c))
+    intersect(toupper(paste("#", x, sep = "")), toupper(query.c))
   })
   # Sometimes there is no hashtag?? Different font, will need to look into
-  
+
   # Generate a two column matrix that takes each entry in the matched list and 
   #    makes an edge for each combination of node in that entry
   edges <- do.call(rbind, lapply(matched, function (x) {
@@ -171,7 +171,7 @@ GetEdgesIndices <- function(edges) {
 GetEdgesColors <- function(edges) {
   edges.rows <- nrow(edges)
   color <- c(length = edges.rows)
-  color[1:edges.rows] <- "#f0f0f0"
+  color[1:edges.rows] <- color.white
   edges$color <- color
   return(edges)
 }
@@ -206,7 +206,7 @@ UpdateWall <- function(data, query.c) {
                  if(nrow(data.subset) > 0) {
                    lapply(1:nrow(data.subset), function(y) {
                      colored.text <- ColorHashtags(data.subset$text[[y]], query.c)
-                     tags$div(style = 'border: 2px solid #1D8DEE',
+                     tags$div(
                               tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")),
                               tags$p(HTML(colored.text)),
                               tags$header(
@@ -234,9 +234,9 @@ ColorHashtags <- function(string, query.c) {
   colored.string.c <- lapply(1:length(string.c), function(x) {
     if(x %in% hashtag.indices) {
       if(toupper(string.c[[x]]) %in% toupper(query.c)) {
-        paste('<font color="#1D8DEE">', string.c[[x]], '</font>')
+        paste('<font color=', color.blue, '>', string.c[[x]], '</font>', sep = "")
       } else {
-        paste('<font color="#cc6666">', string.c[[x]], '</font>')  
+        paste('<font color=', color.red, '>', string.c[[x]], '</font>', sep = "")  
       }
     } else {
       string.c[[x]]
