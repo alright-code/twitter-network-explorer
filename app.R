@@ -7,6 +7,7 @@ library(shinyjs)
 library(ggplot2)
 
 source("functions.R")
+source("wall.R")
 source("campfire_lib.R")
 
 ###Colors###

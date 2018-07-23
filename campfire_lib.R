@@ -39,7 +39,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   serverValues$data <- isolate(GetData(serverValues$query.c,
                                         500,
                                         FALSE))
-  serverValues$wall <- isolate(UpdateWall(serverValues$data, serverValues$query.c))
+  serverValues$wall <- isolate(WallUI(serverValues$data, serverValues$query.c))
   serverValues$edges <- isolate(GetEdges(serverValues$data, serverValues$query.c))
   serverValues$nodes <- isolate(GetNodes(serverValues$data, serverValues$query.c))
   serverValues$type <- "none"
@@ -53,7 +53,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       serverValues$data <- GetData(serverValues$query.c,
                                    serverValues$numberOfTweets,
                                    FALSE)
-      serverValues$wall <- UpdateWall(serverValues$data, serverValues$query.c)
+      serverValues$wall <- WallUI(serverValues$data, serverValues$query.c)
       serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
       serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
       serverValues$type <- "none"
