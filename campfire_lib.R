@@ -31,6 +31,10 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   serverValues$type <- "prescreen"
   serverValues$current_edge_index <- 0
   serverValues$current_node_id <- 0
+  serverValues$query.c <- c("#DataScience", "#DataAnalytics",
+                            "#DataAnalysis", "#MachineLearning",
+                            "#DeepLearning", "#BigData", "#data",
+                            "#Programming", "#Math", "#rstats")
   
   serverValues$data <- GetData(default.query.c,
                                500,
@@ -40,7 +44,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   serverValues$nodes <- isolate(GetNodes(serverValues$data, default.query.c))
   serverValues$type <- "none"
   
-  campfire_server <- shinyServer(function(input, output) {
+  campfire_server <- shinyServer(function(input, output, session) {
     
     # Observe when update button is pressed, the read in data and update
     # corresponding areas
@@ -49,7 +53,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       serverValues$data <- GetData(serverValues$query.c,
                                    serverValues$numberOfTweets,
                                    TRUE)
-      serverValues$wall <- UpdateWall(serverValues$query.c, serverValues$data)
+      serverValues$wall <- UpdateWall(serverValues$data, serverValues$query.c)
       serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
       serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
       serverValues$type <- "none"
@@ -85,8 +89,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       if(serverValues$type == "node") {
         node.name <- serverValues$current_node_id
         node.size <- serverValues$nodes$value[serverValues$nodes$id == serverValues$current_node_id]
-        # node.total.favs <- 
-        # node.favs.per.tweet <- 
         str1 <- paste("Current Node:", node.name)
         str2 <- paste("Size of Node:", node.size)
         serverValues$tweets.info <- HTML(paste(str1, str2, sep = '<br/>'))

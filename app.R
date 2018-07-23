@@ -4,9 +4,16 @@ library(rtweet)
 library(shinythemes)
 library(tidyverse)
 library(shinyjs)
+library(ggplot2)
 
-source("~/ShinyApps/TwitterBrowserMW/functions.R")
-source("~/ShinyApps/TwitterBrowserMW/campfire_lib.R")
+source("functions.R")
+source("campfire_lib.R")
+
+###Colors###
+color.white <- "#f0f0f0"
+color.blue <- "#1D8DEE"
+color.back <- "#151E29"
+color.offback <- "#1B2737"
 
 ###############################################################################
 # MULTIWINDOW SHINY
@@ -43,14 +50,16 @@ campfireApp(
            background: #151E29;"
   ),
   
-  monitor = div(
-    h1("External Monitor"),
-    htmlOutput("tweets.info"),
-    style="position: absolute; 
-           top: 50%; left: 50%;
-           margin-right: -50%; 
-           transform: translate(-50%, -50%);
-           background: rgb(255, 255, 255);"
+  monitor = div(fluidPage(
+    fluidRow(
+      column(6,
+             plotOutput("top.users.bar.extern")
+             ),
+      column(6,
+             plotOutput("top.hashtags.bar.extern")
+             )
+    )),
+    style="background: #151E29;"
   ),
   
   serverFunct = function(serverValues, output) {
@@ -59,7 +68,7 @@ campfireApp(
     if(!is.null(serverValues$nodes)) {
         visNetwork(serverValues$nodes, serverValues$edges) %>%
           visEdges(scaling = list("min" = 0), smooth = list("enabled" = TRUE)) %>%
-          visNodes(scaling = list("min" = 0, "max" = 30)) %>%
+          visNodes(scaling = list("min" = 10, "max" = 50)) %>%
           # After drawing the network, center on 0,0 to keep position
           # independant of node number
           visEvents(type = "once", afterDrawing = "function() {
@@ -94,6 +103,35 @@ campfireApp(
     
     output$wall.ui <- renderUI({
       serverValues$wall
+    })
+    
+    output$top.users.bar.extern <- renderPlot({
+      serverValues$data.subset %>% 
+        count(screen_name) %>% 
+        arrange(desc(n)) %>%
+        slice(1:5) %>%
+        ggplot(aes(reorder(screen_name, n), n)) + 
+          geom_col(fill = "#1D8DEE", color = "#1D8DEE") + 
+          coord_flip() + 
+          labs(x = "Screen Name", y = "Tweets", title = "Top 5 Users") + 
+          theme_dark() +
+          theme(plot.background = element_rect(fill = "#151E29"), axis.text = element_text(colour = "#f0f0f0"), text = element_text(colour = "#1D8DEE"))
+    })
+    
+    output$top.hashtags.bar.extern <- renderPlot({
+      serverValues$data.subset %>%
+        unnest(hashtags) %>%
+        mutate(hashtags = toupper(hashtags)) %>%
+        filter(!(paste("#", hashtags, sep = "") %in% toupper(serverValues$query.c))) %>%
+        count(hashtags) %>%
+        arrange(desc(n)) %>%
+        slice(1:5) %>%
+        ggplot(aes(reorder(hashtags, n), n)) +
+          geom_col(fill = "#1D8DEE", color = "#1D8DEE") +
+          coord_flip() +
+          labs(x = "Hashtag", y = "Frequency", title = "Top 5 Hashtags") +
+          theme_dark() +
+          theme(plot.background = element_rect(fill = "#151E29"), axis.text = element_text(colour = "#f0f0f0"), text = element_text(colour = "#1D8DEE"))
     })
     
   }

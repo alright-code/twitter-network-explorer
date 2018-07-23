@@ -206,7 +206,7 @@ UpdateWall <- function(data, query.c) {
                  if(nrow(data.subset) > 0) {
                    lapply(1:nrow(data.subset), function(y) {
                      colored.text <- ColorHashtags(data.subset$text[[y]], query.c)
-                     tags$div(style = 'border: 2px solid #000000',
+                     tags$div(style = 'border: 2px solid #1D8DEE',
                               tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")),
                               tags$p(HTML(colored.text)),
                               tags$header(
