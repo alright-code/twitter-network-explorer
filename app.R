@@ -139,7 +139,7 @@ campfireApp(
     })
     
     output$top.users.bar.extern <- renderPlot({
-      if(!is.null(serverValues$data.subset)) {
+      if(serverValues$type != "none") {
         serverValues$data.subset %>% 
           count(screen_name) %>% 
           arrange(desc(n)) %>%
@@ -155,7 +155,7 @@ campfireApp(
     })
     
     output$top.hashtags.bar.extern <- renderPlot({
-      if(!is.null(serverValues$data.subset)) {
+      if(serverValues$type != "none") {
         serverValues$data.subset %>%
           unnest(hashtags) %>%
           mutate(hashtags = toupper(hashtags)) %>%
