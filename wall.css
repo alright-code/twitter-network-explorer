@@ -2,11 +2,16 @@ h2 {
   color: #1D8DEE;
 }
 
-h3 {
+h5 {
   color: #1dee7e;
   display: inline-block;
 }
 
 body {
   color: #f0f0f0;
+}
+
+h3 {
+  color: #1dee7e;
+  display: inline-block;
 }

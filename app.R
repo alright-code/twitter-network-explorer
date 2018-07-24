@@ -1,7 +1,6 @@
 library(shiny)
 library(visNetwork)
 library(rtweet)
-library(shinythemes)
 library(tidyverse)
 library(shinyjs)
 library(ggplot2)
@@ -132,11 +131,6 @@ campfireApp(
         str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", num.tweets.found, "</font>", sep = "")
         str2 <- "placeholder"
         HTML(paste(str1, str2, sep = '<br/>'))
-      }
-      # Stuff to print before a network is created
-      else if(serverValues$type == "prescreen") {
-        str1 <- "Welcome to the Campfire Twitter Network Explorer!"
-        HTML(str1)
       }
     })
     

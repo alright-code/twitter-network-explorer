@@ -1,7 +1,7 @@
 WallUI <- function(data, query.c) {
   fluidPage(
     fluidRow(
-      lapply(c(10:1,12,11), function(x) {
+      lapply(1:12, function(x) {
         # Empty column
         if(x > length(query.c)) {
           column(width = 1,
@@ -32,11 +32,11 @@ WallColumn <- function(data.subset, hashtag, query.c) {
                                  tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")), 
                                  tags$p(HTML(colored.text)),
                                  tags$header(
-                                   tags$h3("Favorites:"),
+                                   tags$h5("Favorites:"),
                                    tags$span(data.subset$favorite_count[[y]])
                                  ),
                                  tags$header(
-                                   tags$h3("Retweets:"),
+                                   tags$h5("Retweets:"),
                                    tags$span(data.subset$retweet_count[[y]])
                                  )
                         )

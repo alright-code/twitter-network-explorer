@@ -95,7 +95,7 @@ GetCoords <- function(nodes) {
   radius <- 5
   scale <- 75
   remove <- nrow(nodes) - 12
-  angles <- head(seq(0, 2 * pi, (2 * pi)/12), -1 + remove)
+  angles <- rev(seq(-(pi/2), (3/2) * pi, (2 * pi)/12))[1:nrow(nodes)]
   nodes$x <- scale * radius * cos(angles)
   nodes$y <- -scale * radius * sin(angles)
   return(nodes) 

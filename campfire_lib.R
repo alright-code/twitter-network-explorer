@@ -28,13 +28,9 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   serverValues <- reactiveValues()
   
   # Default serverValues variables
-  serverValues$type <- "prescreen"
   serverValues$current_edge_index <- 0
   serverValues$current_node_id <- 0
-  serverValues$query.c <- c("#DataScience", "#DataAnalytics",
-                            "#DataAnalysis", "#MachineLearning",
-                            "#DeepLearning", "#BigData", "#data",
-                            "#Programming", "#Math", "#rstats")
+  serverValues$query.c <- default.query.c
   
   serverValues$data <- isolate(GetData(serverValues$query.c,
                                         500,
