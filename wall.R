@@ -4,23 +4,25 @@ WallUI <- function(data, query.c) {
       lapply(1:12, function(x) {
         # Empty column
         if(x > length(query.c)) {
-          column(width = 1,
-                 offset = 0)
+          column(width = 1)
         } else {
           data.subset <- GetDataSubset(data, query.c[[x]])
           column(width = 1,
-                 offset = 0,
-                 WallColumn(data.subset, query.c[[x]], query.c))
+                 WallColumn(data.subset, query.c, x))
         }  
       })
     )
   )
 }
 
-WallColumn <- function(data.subset, hashtag, query.c) {
+WallColumn <- function(data.subset, query.c, x) {
   tags$div(includeCSS("wall.css"),
            fluidRow(
-             tags$h2(hashtag)
+             textInput(paste("col.input.", x, sep = ""), NULL, width = "50%"),
+             actionButton(paste("col.but.", x, sep = ""), NULL, width = "50%")
+           ),
+           fluidRow(
+             tags$h2(query.c[[x]])
            ),
            fluidRow(style = 'height: 780px;
                   overflow-y: auto;
