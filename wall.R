@@ -56,7 +56,7 @@ ColorHashtags <- function(string, query.c) {
       if(toupper(string.c[[x]]) %in% toupper(query.c)) {
         paste('<font color=', color.blue, '>', string.c[[x]], '</font>', sep = "")
       } else {
-        paste('<font color=', color.orange, '>', string.c[[x]], '</font>', sep = "")  
+        paste('<font color=', "#ee7e1d", '>', string.c[[x]], '</font>', sep = "")  
       }
     } else {
       string.c[[x]]

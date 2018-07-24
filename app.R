@@ -5,10 +5,6 @@ library(tidyverse)
 library(shinyjs)
 library(ggplot2)
 
-source("functions.R")
-source("wall.R")
-source("campfire_lib.R")
-
 ###Colors###
 color.green <- "#1dee7e"
 color.pink <- "#ee1d8d"
@@ -17,6 +13,10 @@ color.white <- "#f0f0f0"
 color.blue <- "#1D8DEE"
 color.back <- "#151E29"
 color.offback <- "#1B2737"
+
+source("functions.R")
+source("wall.R")
+source("campfire_lib.R")
 
 ###############################################################################
 # MULTIWINDOW SHINY
@@ -56,10 +56,10 @@ campfireApp(
   monitor = div(fluidPage(
     fluidRow(
       column(6,
-             plotOutput("top.users.bar.extern", height = "788px")
+             plotOutput("top.users.bar.extern", height = "1010px")
              ),
       column(6,
-             plotOutput("top.hashtags.bar.extern", height = "788px")
+             plotOutput("top.hashtags.bar.extern", height = "1010px")
              )
     ),
     fluidRow(
