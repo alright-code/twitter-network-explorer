@@ -1,52 +1,47 @@
-WallUI <- function(data, query.c) {
-  fluidPage(
-    fluidRow(
-      lapply(1:12, function(x) {
-        # Empty column
-        if(x > length(query.c)) {
-          column(width = 1)
-        } else {
-          data.subset <- GetDataSubset(data, query.c[[x]])
-          column(width = 1,
-                 WallColumn(data.subset, query.c, x))
-        }  
-      })
-    )
-  )
+# Only call when update on controller is pressed, update every column on the
+# wall sequentially. There will only be gaps at the end
+UpdateWall <- function(data, query.c) {
+  col.list <- vector("list", 12)
+  col.list <- lapply(1:12, function(col.num) {
+    if(col.num > length(query.c)) {
+      col.list[[col.num]] <- column(width = 1)
+    } else {
+      data.subset <- GetDataSubset(data, query.c[[col.num]])
+      col.list[[col.num]] <- UpdateColumn(data.subset, query.c, col.num)
+    }
+  })
+  col.list
 }
 
-WallColumn <- function(data.subset, query.c, x) {
-  tags$div(includeCSS("wall.css"),
-           fluidRow(
-             textInput(paste("col.input.", x, sep = ""), NULL, width = "50%"),
-             actionButton(paste("col.but.", x, sep = ""), NULL, width = "50%")
-           ),
-           fluidRow(
-             tags$h2(query.c[[x]])
-           ),
-           fluidRow(style = 'height: 780px;
+UpdateColumn <- function(data.subset, query.c, col.num) {
+  column(width = 1,
+         tags$div(includeCSS("wall.css"),
+                  fluidRow(
+                    tags$h2(query.c[[col.num]])
+                  ),
+                  fluidRow(style = 'height: 780px;
                   overflow-y: auto;
                   overflow-x: hidden;',
-                    if(nrow(data.subset) > 0) {
-                      lapply(1:nrow(data.subset), function(y) {
-                        colored.text <- ColorHashtags(data.subset$text[[y]], query.c)
-                        tags$div(style='padding: 0px;',
-                                 tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")), 
-                                 tags$p(HTML(colored.text)),
-                                 tags$header(
-                                   tags$h5("Favorites:"),
-                                   tags$span(data.subset$favorite_count[[y]])
-                                 ),
-                                 tags$header(
-                                   tags$h5("Retweets:"),
-                                   tags$span(data.subset$retweet_count[[y]])
-                                 )
-                        )
-                      })
-                    }
-           )
+                           if(nrow(data.subset) > 0) {
+                             lapply(1:nrow(data.subset), function(y) {
+                               colored.text <- ColorHashtags(data.subset$text[[y]], query.c)
+                               tags$div(style='padding: 0px;',
+                                        tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")), 
+                                        tags$p(HTML(colored.text)),
+                                        tags$header(
+                                          tags$h5("Favorites:"),
+                                          tags$span(data.subset$favorite_count[[y]])
+                                        ),
+                                        tags$header(
+                                          tags$h5("Retweets:"),
+                                          tags$span(data.subset$retweet_count[[y]])
+                                        )
+                               )
+                             })
+                           }
+                  )
+         )
   )
-  
 }
 
 # Color the hashtags in a string using HTML

@@ -30,29 +30,42 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   # Default serverValues variables
   serverValues$current_edge_index <- 0
   serverValues$current_node_id <- 0
-  serverValues$query.c <- default.query.c
-  
-  serverValues$data <- isolate(GetData(serverValues$query.c,
-                                        500,
-                                        FALSE))
-  serverValues$wall <- isolate(WallUI(serverValues$data, serverValues$query.c))
-  serverValues$edges <- isolate(GetEdges(serverValues$data, serverValues$query.c))
-  serverValues$nodes <- isolate(GetNodes(serverValues$data, serverValues$query.c))
-  serverValues$type <- "none"
+  serverValues$delete_node <- 0
+  serverValues$initialize <- FALSE
   
   campfire_server <- shinyServer(function(input, output) {
     
-    # Observe when update button is pressed, the read in data and update
-    # corresponding areas
-    observeEvent(input$update, {
+    UpdateValues <- reactive({
+      for (inputId in names(input)) {
+        serverValues[[inputId]] <- input[[inputId]]
+      }
+    })
+    
+    # Use the controller query to pull information to completely update the app
+    UpdateButton <- reactive({
+      UpdateValues()
       serverValues$query.c <- StringQueryToVector(serverValues$query)
       serverValues$data <- GetData(serverValues$query.c,
                                    serverValues$numberOfTweets,
                                    FALSE)
-      serverValues$wall <- WallUI(serverValues$data, serverValues$query.c)
+      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
       serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
       serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
       serverValues$type <- "none"
+    })
+    
+    # Get default data on startup
+    isolate({
+      if(serverValues$initialize == FALSE) {
+        UpdateButton()
+        serverValues$initialize <- TRUE
+      }
+    })
+    
+    # Observe when update button is pressed, the read in data and update
+    # corresponding areas
+    observeEvent(input$update, {
+      UpdateButton()
     })
     
     # Actions to be taken when edge or node selection is changed
@@ -60,13 +73,15 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       input$current_node_id
       input$current_edge_index
       }, {
+        UpdateValues()
         # When neither an edge or node is selected 
         if(serverValues$current_node_id == 0 && serverValues$current_edge_index == 0){
           serverValues$type <- "none"
+          serverValues$data.subset <- NULL
         # When edge is selected
         } else if(serverValues$current_node_id == 0) {
           serverValues$type <- "edge"
-          edge <- serverValues$edges[serverValues$edges$index == input$current_edge_index, ]
+          edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
           query <- c(as.character(edge$to), as.character(edge$from))
           serverValues$data.subset <- GetDataSubset(serverValues$data, query)
           # When node is selected
@@ -76,12 +91,16 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
           serverValues$data.subset <- GetDataSubset(serverValues$data, query)
         } 
       })
-  
-    observe({
-      for (inputId in names(input)) {
-        serverValues[[inputId]] <- input[[inputId]]
-      }
-    })
+    
+    # observeEvent(input$delete_node, {
+    #   print("ok")
+    #   node.index <- which(serverValues$current_node_id %in% toupper(serverValues$query.c))
+    #   print(node.index)
+    #   serverValues$col.list[[node.index]] <- column(width = 1)
+    #   serverValues$type <- "none"
+    #   serverValues$data.subset <- NULL
+    #   input$delete_node <- 0
+    # })
     
     serverFunct(serverValues, output)
     

@@ -56,10 +56,10 @@ campfireApp(
   monitor = div(fluidPage(
     fluidRow(
       column(6,
-             plotOutput("top.users.bar.extern", height = "788px")
+             plotOutput("top.users.bar.extern", height = "1010px")
              ),
       column(6,
-             plotOutput("top.hashtags.bar.extern", height = "788px")
+             plotOutput("top.hashtags.bar.extern", height = "1010px")
              )
     ),
     fluidRow(
@@ -101,7 +101,13 @@ campfireApp(
                                   }",
                   deselectNode = "function() {
                                   Shiny.onInputChange('current_node_id', 0);
-                                  }")
+                                  }",
+                  doubleClick = "function() {
+                                 if(this.getSelectedNodes().length == 1) {
+                                   this.deleteSelected();
+                                   Shiny.onInputChange('delete_node', 1)
+                                 }
+                                 }")
       }
     })
     
@@ -135,7 +141,13 @@ campfireApp(
     })
     
     output$wall.ui <- renderUI({
-      serverValues$wall
+      fluidPage(
+        fluidRow(
+          lapply(1:12, function(col.num) {
+            serverValues$col.list[[col.num]]  
+          })
+        )
+      )
     })
     
     output$top.users.bar.extern <- renderPlot({
