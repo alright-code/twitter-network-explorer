@@ -1,16 +1,16 @@
 # Only call when update on controller is pressed, update every column on the
 # wall sequentially. There will only be gaps at the end
-UpdateWall <- function(data, query.c) {
+UpdateWall <- function(all.subsets, query.c) {
   col.list <- vector("list", 12)
   col.list <- lapply(1:12, function(col.num) {
     if(col.num > length(query.c)) {
-      col.list[[col.num]] <- column(width = 1)
+      column(width = 1)
     } else {
-      data.subset <- GetDataSubset(data, query.c[[col.num]])
-      col.list[[col.num]] <- UpdateColumn(data.subset, query.c, col.num)
+      data.subset <- all.subsets[[toupper(query.c)[col.num]]]
+      UpdateColumn(data.subset, query.c, col.num)
     }
   })
-  col.list
+  return(col.list)
 }
 
 UpdateColumn <- function(data.subset, query.c, col.num) {

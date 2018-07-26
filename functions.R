@@ -29,6 +29,15 @@ GetDataSubset <- function(data, query.c) {
   return(data.subset)
 }
 
+GetAllDataSubsets <- function(data, query.c) {
+  all.subsets <- vector("list", 12)
+  names(all.subsets) <- toupper(query.c)
+  for(hashtag in toupper(query.c)) {
+    all.subsets[[hashtag]] <- GetDataSubset(data, hashtag) 
+  }
+  return(all.subsets)
+}
+
 ###############################################################################
 # NODE FUNCTIONS
 ###############################################################################

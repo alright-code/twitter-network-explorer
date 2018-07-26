@@ -28,10 +28,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   serverValues <- reactiveValues()
   
   # Default serverValues variables
-  serverValues$current_edge_index <- 0
-  serverValues$current_node_id <- 0
-  serverValues$delete_node <- 0
-  serverValues$initialize <- FALSE
+  serverValues$initialized <- FALSE
   
   campfire_server <- shinyServer(function(input, output) {
     
@@ -45,20 +42,21 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
     UpdateButton <- reactive({
       UpdateValues()
       serverValues$query.c <- StringQueryToVector(serverValues$query)
-      serverValues$data <- GetData(serverValues$query.c,
-                                   serverValues$numberOfTweets,
+      data <- GetData(serverValues$query.c,
+                                   serverValues$number.tweets,
                                    FALSE)
-      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
-      serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
-      serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
-      serverValues$type <- "none"
+      serverValues$tweets.collected <- nrow(data)
+      serverValues$all.subsets <- GetAllDataSubsets(data, serverValues$query.c)
+      serverValues$col.list <- UpdateWall(serverValues$all.subsets, serverValues$query.c)
+      serverValues$edges <- GetEdges(data, serverValues$query.c)
+      serverValues$nodes <- GetNodes(data, serverValues$query.c)
     })
     
     # Get default data on startup
     isolate({
-      if(serverValues$initialize == FALSE) {
+      if(serverValues$initialized == FALSE) {
         UpdateButton()
-        serverValues$initialize <- TRUE
+        serverValues$initialized <- TRUE
       }
     })
     
@@ -76,31 +74,25 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
         UpdateValues()
         # When neither an edge or node is selected 
         if(serverValues$current_node_id == 0 && serverValues$current_edge_index == 0){
-          serverValues$type <- "none"
           serverValues$data.subset <- NULL
         # When edge is selected
         } else if(serverValues$current_node_id == 0) {
-          serverValues$type <- "edge"
           edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
           query <- c(as.character(edge$to), as.character(edge$from))
           serverValues$data.subset <- GetDataSubset(serverValues$data, query)
-          # When node is selected
+        # When node is selected
         } else {
-          serverValues$type <- "node"
           query <- input$current_node_id
-          serverValues$data.subset <- GetDataSubset(serverValues$data, query)
+          serverValues$data.subset <- serverValues$all.subsets[[query]]
         } 
       })
     
-    # observeEvent(input$delete_node, {
-    #   print("ok")
-    #   node.index <- which(serverValues$current_node_id %in% toupper(serverValues$query.c))
-    #   print(node.index)
-    #   serverValues$col.list[[node.index]] <- column(width = 1)
-    #   serverValues$type <- "none"
-    #   serverValues$data.subset <- NULL
-    #   input$delete_node <- 0
-    # })
+    observeEvent(input$delete_node, {
+      UpdateValues()
+      node.index <- which(toupper(serverValues$query.c) %in% serverValues$delete_node)
+      serverValues$col.list[[node.index]] <- column(width = 1)
+      serverValues$all.subsets[[serverValues$delete_node]] <- NULL
+    })
     
     serverFunct(serverValues, output)
     
