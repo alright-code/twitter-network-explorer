@@ -104,8 +104,6 @@ campfireApp(
                                 Shiny.onInputChange('current_edge_index', this.body.data.edges.get(properties.edges[0]).index);
                                 Shiny.onInputChange('type', 'edge');
                               } else {
-                                Shiny.onInputChange('current_node_id', 0);
-                                Shiny.onInputChange('current_edge_index', 0);
                                 Shiny.onInputChange('type', 'none');
                               }
                             }",
