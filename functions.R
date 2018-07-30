@@ -137,7 +137,7 @@ GetToFrom <- function(data, query.c) {
     intersect(toupper(paste0("#", x)), toupper(query.c))
   })
   # Sometimes there is no hashtag?? Different font, will need to look into
- 
+  print(matched)
   # Generate a two column matrix that takes each entry in the matched list and 
   #    makes an edge for each combination of node in that entry
   edges <- do.call(rbind, lapply(matched, function (x) {

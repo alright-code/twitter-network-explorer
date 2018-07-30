@@ -10,7 +10,8 @@ default.query.c <- c("#DataScience", "#DataAnalytics",
 
 health.query <- c("#HealthTech", "#Healthcare", "#DataScience", "#Bigdata",
                   "#AI", "#Health", "#Fitness", "#MachineLearning", "#IOT",
-                  "#Nutrition", "#Blockchain", "#Fit")
+                  "#Nutrition", "#Blockchain")
+#fit
 
 default.query.string <- paste(health.query, collapse = " ")
 
@@ -71,6 +72,13 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       UpdateButton()
     })
     
+    buttons <- reactive({
+      list(input$button.column.1, input$button.column.2, input$button.column.3,
+           input$button.column.4, input$button.column.5, input$button.column.6,
+           input$button.column.7, input$button.column.8, input$button.column.9,
+           input$button.column.10, input$button.column.11, input$button.column.12)
+    })
+    
     # Actions to be taken when edge or node selection is changed
     observeEvent({
       input$current_node_id
@@ -78,10 +86,10 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       }, {
         UpdateValues()
         # When neither an edge or node is selected 
-        if(serverValues$current_node_id == 0 && serverValues$current_edge_index == 0){
+        if(serverValues$type == "none"){
           serverValues$data.subset <- NULL
         # When edge is selected
-        } else if(serverValues$current_node_id == 0) {
+        } else if(serverValues$type == "edge") {
           edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
           node1 <- as.character(edge$to)
           node2 <- as.character(edge$from)
@@ -89,7 +97,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
           subset2 <- serverValues$all.subsets[[node2]]$data
           serverValues$data.subset <- unique(merge(subset1, subset2))
         # When node is selected
-        } else {
+        } else if(serverValues$type == "node") {
           query <- input$current_node_id
           serverValues$data.subset <- serverValues$all.subsets[[query]]$data
         } 
@@ -103,7 +111,87 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
                                                     actionButton(paste0("button.column.", node.index), NULL))
       serverValues$all.subsets[[serverValues$delete_node]] <- NULL
       serverValues$data.subset <- NULL
-      print(names(serverValues))
+      serverValues$query.c <- serverValues$query.c[! toupper(serverValues$query.c) %in% serverValues$delete_node]
+    })
+    
+    # Yikes
+    observeEvent({
+      input$button.column.1
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.2
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.3
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.4
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.5
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.6
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.7
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.8
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.9
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.10
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.11
+    }, {
+      UpdateValues()
+    })
+    
+    observeEvent({
+      input$button.column.12
+    }, {
+      UpdateValues()
+      col.num <- 12
+      serverValues$query.c <- c(serverValues$query.c, serverValues$text.column.12)
+      data.subset <- GetData(serverValues$text.column.12,
+                             50,
+                             FALSE)
+      serverValues$all.subsets[[toupper(serverValues$text.column.12)]] <- data.subset
+      serverValues$col.list[[12]] <- UpdateColumn(data.subset, serverValues$query.c, 12)
     })
     
     serverFunct(serverValues, output)
