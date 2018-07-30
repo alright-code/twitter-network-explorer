@@ -4,6 +4,7 @@ library(rtweet)
 library(tidyverse)
 library(shinyjs)
 library(ggplot2)
+library(shinycssloaders)
 
 ###Colors###
 color.green <- "#1dee7e"
@@ -27,7 +28,7 @@ campfireApp(
   controller = div(
     h1("Controller"),
     textAreaInput("query", "Hashtags", default.query.string, height = '200px'),
-    sliderInput(inputId = "numberOfTweets",
+    sliderInput(inputId = "number.tweets",
                 label = "Choose number of tweets for the search:",
                 min = 50, max = 10000, value = 500),
     actionButton(inputId = "update",
@@ -79,29 +80,44 @@ campfireApp(
           visNodes(scaling = list("min" = 10, "max" = 50)) %>%
           # After drawing the network, center on 0,0 to keep position
           # independant of node number
-          visEvents(type = "once", afterDrawing = "function() {
+          visEvents(type = "once", beforeDrawing = "function() {
             this.moveTo({
                           position: {
                             x: 0,
                             y: 0
                           },
                     scale: 1
-            })}") %>%
+            })
+            Shiny.onInputChange('current_node_id', 0);
+            Shiny.onInputChange('current_edge_index', 0);
+            Shiny.onInputChange('type', 'none');
+          }") %>%
           visPhysics(stabilization = FALSE, enabled = FALSE) %>%
           # visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
           # Define behavior when clicking on nodes or edges
-          visEvents(selectEdge = "function(properties) {
-                                  Shiny.onInputChange('current_edge_index', this.body.data.edges.get(properties.edges[0]).index);
-                                  }",
-                  selectNode = "function(properties) {
-                                Shiny.onInputChange('current_node_id', this.body.data.nodes.get(properties.nodes[0]).id);
-                                }",
-                  deselectEdge = "function() {
-                                  Shiny.onInputChange('current_edge_index', 0);
-                                  }",
-                  deselectNode = "function() {
-                                  Shiny.onInputChange('current_node_id', 0);
-                                  }")
+          visEvents(
+                    click = "function(properties) {
+                              if(this.getSelectedNodes().length == 1) {
+                                Shiny.onInputChange('current_node_id', this.getSelectedNodes()[0]);
+                                Shiny.onInputChange('type', 'node');
+                              } else if(this.getSelectedEdges().length == 1) {
+                                Shiny.onInputChange('current_edge_index', this.body.data.edges.get(properties.edges[0]).index);
+                                Shiny.onInputChange('type', 'edge');
+                              } else {
+                                Shiny.onInputChange('current_node_id', 0);
+                                Shiny.onInputChange('current_edge_index', 0);
+                                Shiny.onInputChange('type', 'none');
+                              }
+                            }",
+                    doubleClick = "function(properties) {
+                                     if(this.getSelectedNodes().length == 1) {
+                                       Shiny.onInputChange('delete_node', this.getSelectedNodes()[0]);
+                                       this.deleteSelected();
+                                       Shiny.onInputChange('type', 'none');
+                                     }
+                                   }"
+                  )
+                  
       }
     })
     
@@ -109,7 +125,7 @@ campfireApp(
       # Stuff to print when node is selected
       if(serverValues$type == "node") {
         node.name <- serverValues$current_node_id
-        node.size <- serverValues$nodes$value[serverValues$nodes$id == serverValues$current_node_id]
+        node.size <- nrow(serverValues$data.subset)
         str1 <- paste("<font color=", color.white, "> Current Node: ", node.name, "</font>", sep = "")
         str2 <- paste("<font color=", color.white, "> Node Size: ", node.size, "</font>", sep = "")
         HTML(paste(str1, str2, sep = '<br/>'))
@@ -120,26 +136,31 @@ campfireApp(
         edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
         query <- c(as.character(edge$to), as.character(edge$from))
         edge.name <- paste(query, collapse = " AND ")
-        edge.size <- serverValues$edges$value[serverValues$edges$index == serverValues$current_edge_index]
+        edge.size <- nrow(serverValues$data.subset)
         str1 <- paste("<font color=", color.white, "> Current Edge: ", edge.name, "</font>", sep = "")
         str2 <- paste("<font color=", color.white, "> Edge Size: ", edge.size, "</font>", sep = "")
         HTML(paste(str1, str2, sep = '<br/>'))
       }
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
-        num.tweets.found <- nrow(serverValues$data)
-        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", num.tweets.found, "</font>", sep = "")
+        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", serverValues$tweets.collected, "</font>", sep = "")
         str2 <- "placeholder"
         HTML(paste(str1, str2, sep = '<br/>'))
       }
     })
     
     output$wall.ui <- renderUI({
-      serverValues$wall
+      fluidPage(
+        fluidRow(
+          lapply(1:12, function(col.num) {
+            serverValues$col.list[[col.num]] 
+          })
+        )
+      )
     })
     
     output$top.users.bar.extern <- renderPlot({
-      if(serverValues$type != "none") {
+      if(!is.null(serverValues$data.subset)) {
         serverValues$data.subset %>% 
           count(screen_name) %>% 
           arrange(desc(n)) %>%
@@ -155,7 +176,7 @@ campfireApp(
     })
     
     output$top.hashtags.bar.extern <- renderPlot({
-      if(serverValues$type != "none") {
+      if(!is.null(serverValues$data.subset)) {
         serverValues$data.subset %>%
           unnest(hashtags) %>%
           mutate(hashtags = toupper(hashtags)) %>%

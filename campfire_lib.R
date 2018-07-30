@@ -8,14 +8,19 @@ default.query.c <- c("#DataScience", "#DataAnalytics",
                      "#DeepLearning", "#BigData", "#data",
                      "#Programming", "#Math", "#rstats")
 
-default.query.string <- paste(default.query.c, collapse = " ")
+health.query <- c("#HealthTech", "#Healthcare", "#DataScience", "#Bigdata",
+                  "#AI", "#Health", "#Fitness", "#MachineLearning", "#IOT",
+                  "#Nutrition", "#Blockchain", "#Fit")
+
+default.query.string <- paste(health.query, collapse = " ")
 
 token <- create_token(
   app = "Campfire_Twitter",
   consumer_key = "YysJwhUvIYyEZsOqLtE5mlsHv",
   consumer_secret = "EC997cOOlCzp4qedKVaYCB2zs8HnPyKEhIqLV2PNKCirXartcE",
   access_token = "3038115538-sDa3AOf3UwkvWM9g9REitniqw9L8EZxJFza8qj4",
-  access_secret = "qRZja6LSKA2rm7mVBpbNGQKKmBlCKbsXmbL3TmmvEoPp2"
+  access_secret = "qRZja6LSKA2rm7mVBpbNGQKKmBlCKbsXmbL3TmmvEoPp2",
+  FALSE
 )
 
 ###############################################################################
@@ -28,31 +33,42 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   serverValues <- reactiveValues()
   
   # Default serverValues variables
-  serverValues$current_edge_index <- 0
-  serverValues$current_node_id <- 0
-  serverValues$query.c <- default.query.c
-  
-  serverValues$data <- isolate(GetData(serverValues$query.c,
-                                        500,
-                                        FALSE))
-  serverValues$wall <- isolate(WallUI(serverValues$data, serverValues$query.c))
-  serverValues$edges <- isolate(GetEdges(serverValues$data, serverValues$query.c))
-  serverValues$nodes <- isolate(GetNodes(serverValues$data, serverValues$query.c))
-  serverValues$type <- "none"
+  serverValues$initialized <- FALSE
   
   campfire_server <- shinyServer(function(input, output) {
+    
+    UpdateValues <- reactive({
+      for (inputId in names(input)) {
+        serverValues[[inputId]] <- input[[inputId]]
+      }
+    })
+    
+    # Use the controller query to pull information to completely update the app
+    UpdateButton <- reactive({
+      UpdateValues()
+      serverValues$query.c <- StringQueryToVector(serverValues$query)
+      data <- GetData(serverValues$query.c,
+                                   serverValues$number.tweets,
+                                   FALSE)
+      serverValues$tweets.collected <- nrow(data)
+      serverValues$all.subsets <- GetAllDataSubsets(data, serverValues$query.c)
+      serverValues$col.list <- UpdateWall(serverValues$all.subsets, serverValues$query.c)
+      serverValues$edges <- GetEdges(data, serverValues$query.c)
+      serverValues$nodes <- GetNodes(data, serverValues$query.c)
+    })
+    
+    # Get default data on startup
+    isolate({
+      if(serverValues$initialized == FALSE) {
+        UpdateButton()
+        serverValues$initialized <- TRUE
+      }
+    })
     
     # Observe when update button is pressed, the read in data and update
     # corresponding areas
     observeEvent(input$update, {
-      serverValues$query.c <- StringQueryToVector(serverValues$query)
-      serverValues$data <- GetData(serverValues$query.c,
-                                   serverValues$numberOfTweets,
-                                   FALSE)
-      serverValues$wall <- WallUI(serverValues$data, serverValues$query.c)
-      serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
-      serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
-      serverValues$type <- "none"
+      UpdateButton()
     })
     
     # Actions to be taken when edge or node selection is changed
@@ -60,27 +76,34 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       input$current_node_id
       input$current_edge_index
       }, {
+        UpdateValues()
         # When neither an edge or node is selected 
         if(serverValues$current_node_id == 0 && serverValues$current_edge_index == 0){
-          serverValues$type <- "none"
+          serverValues$data.subset <- NULL
         # When edge is selected
         } else if(serverValues$current_node_id == 0) {
-          serverValues$type <- "edge"
-          edge <- serverValues$edges[serverValues$edges$index == input$current_edge_index, ]
-          query <- c(as.character(edge$to), as.character(edge$from))
-          serverValues$data.subset <- GetDataSubset(serverValues$data, query)
-          # When node is selected
+          edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
+          node1 <- as.character(edge$to)
+          node2 <- as.character(edge$from)
+          subset1 <- serverValues$all.subsets[[node1]]$data
+          subset2 <- serverValues$all.subsets[[node2]]$data
+          serverValues$data.subset <- unique(merge(subset1, subset2))
+        # When node is selected
         } else {
-          serverValues$type <- "node"
           query <- input$current_node_id
-          serverValues$data.subset <- GetDataSubset(serverValues$data, query)
+          serverValues$data.subset <- serverValues$all.subsets[[query]]$data
         } 
       })
-  
-    observe({
-      for (inputId in names(input)) {
-        serverValues[[inputId]] <- input[[inputId]]
-      }
+    
+    observeEvent(input$delete_node, {
+      UpdateValues()
+      node.index <- serverValues$all.subsets[[serverValues$delete_node]]$index
+      serverValues$col.list[[node.index]] <- column(width = 1,
+                                                    textInput(paste0("text.column.", node.index), node.index),
+                                                    actionButton(paste0("button.column.", node.index), NULL))
+      serverValues$all.subsets[[serverValues$delete_node]] <- NULL
+      serverValues$data.subset <- NULL
+      print(names(serverValues))
     })
     
     serverFunct(serverValues, output)
