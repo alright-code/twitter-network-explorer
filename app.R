@@ -30,7 +30,7 @@ campfireApp(
     textAreaInput("query", "Hashtags", default.query.string, height = '200px'),
     sliderInput(inputId = "number.tweets",
                 label = "Choose number of tweets for the search:",
-                min = 50, max = 10000, value = 100),
+                min = 50, max = 10000, value = 500),
     actionButton(inputId = "update",
                  label = "Update"),
     style = "position: absolute; 
@@ -90,6 +90,7 @@ campfireApp(
             })
             Shiny.onInputChange('current_node_id', 0);
             Shiny.onInputChange('current_edge_index', 0);
+            Shiny.onInputChange('type', 'none');
           }") %>%
           visPhysics(stabilization = FALSE, enabled = FALSE) %>%
           # visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
@@ -124,7 +125,7 @@ campfireApp(
       # Stuff to print when node is selected
       if(serverValues$type == "node") {
         node.name <- serverValues$current_node_id
-        node.size <- serverValues$nodes$value[serverValues$nodes$id == serverValues$current_node_id]
+        node.size <- nrow(serverValues$data.subset)
         str1 <- paste("<font color=", color.white, "> Current Node: ", node.name, "</font>", sep = "")
         str2 <- paste("<font color=", color.white, "> Node Size: ", node.size, "</font>", sep = "")
         HTML(paste(str1, str2, sep = '<br/>'))
@@ -135,15 +136,14 @@ campfireApp(
         edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
         query <- c(as.character(edge$to), as.character(edge$from))
         edge.name <- paste(query, collapse = " AND ")
-        edge.size <- serverValues$edges$value[serverValues$edges$index == serverValues$current_edge_index]
+        edge.size <- nrow(serverValues$data.subset)
         str1 <- paste("<font color=", color.white, "> Current Edge: ", edge.name, "</font>", sep = "")
         str2 <- paste("<font color=", color.white, "> Edge Size: ", edge.size, "</font>", sep = "")
         HTML(paste(str1, str2, sep = '<br/>'))
       }
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
-        num.tweets.found <- nrow(serverValues$tweets.collected)
-        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", num.tweets.found, "</font>", sep = "")
+        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", serverValues$tweets.collected, "</font>", sep = "")
         str2 <- "placeholder"
         HTML(paste(str1, str2, sep = '<br/>'))
       }
@@ -160,7 +160,7 @@ campfireApp(
     })
     
     output$top.users.bar.extern <- renderPlot({
-      if(serverValues$type != "none") {
+      if(!is.null(serverValues$data.subset)) {
         serverValues$data.subset %>% 
           count(screen_name) %>% 
           arrange(desc(n)) %>%
@@ -176,7 +176,7 @@ campfireApp(
     })
     
     output$top.hashtags.bar.extern <- renderPlot({
-      if(serverValues$type != "none") {
+      if(!is.null(serverValues$data.subset)) {
         serverValues$data.subset %>%
           unnest(hashtags) %>%
           mutate(hashtags = toupper(hashtags)) %>%

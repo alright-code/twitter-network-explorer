@@ -8,7 +8,11 @@ default.query.c <- c("#DataScience", "#DataAnalytics",
                      "#DeepLearning", "#BigData", "#data",
                      "#Programming", "#Math", "#rstats")
 
-default.query.string <- paste(default.query.c, collapse = " ")
+health.query <- c("#HealthTech", "#Healthcare", "#DataScience", "#Bigdata",
+                  "#AI", "#Health", "#Fitness", "#MachineLearning", "#IOT",
+                  "#Nutrition", "#Blockchain", "#Fit")
+
+default.query.string <- paste(health.query, collapse = " ")
 
 token <- create_token(
   app = "Campfire_Twitter",
@@ -78,20 +82,27 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
         # When edge is selected
         } else if(serverValues$current_node_id == 0) {
           edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
-          query <- c(as.character(edge$to), as.character(edge$from))
-          serverValues$data.subset <- GetDataSubset(serverValues$data, query)
+          node1 <- as.character(edge$to)
+          node2 <- as.character(edge$from)
+          subset1 <- serverValues$all.subsets[[node1]]$data
+          subset2 <- serverValues$all.subsets[[node2]]$data
+          serverValues$data.subset <- unique(merge(subset1, subset2))
         # When node is selected
         } else {
           query <- input$current_node_id
-          serverValues$data.subset <- serverValues$all.subsets[[query]]
+          serverValues$data.subset <- serverValues$all.subsets[[query]]$data
         } 
       })
     
     observeEvent(input$delete_node, {
       UpdateValues()
-      node.index <- which(toupper(serverValues$query.c) %in% serverValues$delete_node)
-      serverValues$col.list[[node.index]] <- column(width = 1)
+      node.index <- serverValues$all.subsets[[serverValues$delete_node]]$index
+      serverValues$col.list[[node.index]] <- column(width = 1,
+                                                    textInput(paste0("text.column.", node.index), node.index),
+                                                    actionButton(paste0("button.column.", node.index), NULL))
       serverValues$all.subsets[[serverValues$delete_node]] <- NULL
+      serverValues$data.subset <- NULL
+      print(names(serverValues))
     })
     
     serverFunct(serverValues, output)

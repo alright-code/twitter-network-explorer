@@ -32,8 +32,10 @@ GetDataSubset <- function(data, query.c) {
 GetAllDataSubsets <- function(data, query.c) {
   all.subsets <- vector("list", 12)
   names(all.subsets) <- toupper(query.c)
+  x <- 1
   for(hashtag in toupper(query.c)) {
-    all.subsets[[hashtag]] <- GetDataSubset(data, hashtag) 
+    all.subsets[[hashtag]] <- list(index = x, data = GetDataSubset(data, hashtag)) 
+    x <- x + 1
   }
   return(all.subsets)
 }
@@ -132,10 +134,10 @@ GetToFrom <- function(data, query.c) {
   # Create a list identical to data$hashtags, but remove the hashtags not 
   #   searched for. Everything is uppercase
   matched <- lapply(data$hashtags, function(x) {
-    intersect(toupper(paste("#", x, sep = "")), toupper(query.c))
+    intersect(toupper(paste0("#", x)), toupper(query.c))
   })
   # Sometimes there is no hashtag?? Different font, will need to look into
-
+ 
   # Generate a two column matrix that takes each entry in the matched list and 
   #    makes an edge for each combination of node in that entry
   edges <- do.call(rbind, lapply(matched, function (x) {
