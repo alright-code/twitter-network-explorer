@@ -7,7 +7,7 @@
 GetData <- function(query.c, num.tweets, include.rts) {
   query.string <- paste(query.c, collapse = " OR ")
   data <- search_tweets(query.string, n = num.tweets, include_rts = include.rts,
-                        token = token, type = 'recent')
+                        token = token, type = 'mixed')
   return(data)
 }
 

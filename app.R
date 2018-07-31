@@ -162,13 +162,13 @@ campfireApp(
         serverValues$data.subset %>% 
           count(screen_name) %>% 
           arrange(desc(n)) %>%
-          slice(1:5) %>%
+          slice(1:10) %>%
           ggplot(aes(reorder(screen_name, n), n)) + 
           geom_col(fill = color.blue, color = color.blue) + 
           coord_flip() + 
-          labs(x = "Screen Name", y = "Tweets", title = "Top 5 Users") + 
+          labs(x = "Screen Name", y = "Tweets", title = "Top 10 Users") + 
           theme_dark() +
-          theme(plot.background = element_rect(fill = color.back), axis.text = element_text(colour = "#f0f0f0"), text = element_text(colour = "#1D8DEE"))
+          theme(plot.background = element_rect(fill = color.back), axis.text = element_text(size = 20, colour = "#f0f0f0"), text = element_text(size = 20, colour = "#1D8DEE"))
       }
     
     })
@@ -181,13 +181,13 @@ campfireApp(
           filter(!(paste("#", hashtags, sep = "") %in% toupper(serverValues$query.c))) %>%
           count(hashtags) %>%
           arrange(desc(n)) %>%
-          slice(1:5) %>%
+          slice(1:10) %>%
           ggplot(aes(reorder(hashtags, n), n)) +
           geom_col(fill = color.blue, color = color.blue) +
           coord_flip() +
-          labs(x = "Hashtag", y = "Frequency", title = "Top 5 Hashtags") +
+          labs(x = "Hashtag", y = "Frequency", title = "Top 10 Hashtags") +
           theme_dark() +
-          theme(panel.border = element_blank(), plot.background = element_rect(fill = color.back), axis.text = element_text(colour = "#f0f0f0"), text = element_text(colour = "#1D8DEE"))
+          theme(panel.border = element_blank(), plot.background = element_rect(fill = color.back), axis.text = element_text(size = 20, colour = "#f0f0f0"), text = element_text(size = 20, colour = "#1D8DEE"))
       }
       
     })

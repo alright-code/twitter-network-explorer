@@ -101,6 +101,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
                                                     actionButton(paste0("button.column.", node.index), NULL))
       serverValues$query.c[[node.index]] <- NA
       serverValues$data.subset <- NULL
+      UpdateButton()
     })
     
     # Yikes
