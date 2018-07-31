@@ -47,12 +47,12 @@ GetAllDataSubsets <- function(data, query.c) {
 # Input: data dataframe, query vector
 # Output: Data frame with id and value columns
 GetNodes <- function(data, query.c) {
-  nodes <- GetId(query.c)
+  nodes <- GetId(query.c[!is.na(query.c)])
   nodes$value <- GetNodesValue(data, nodes)
   nodes$label <- GetNodesLabel(nodes)
   nodes$color <- GetNodesColor(nodes)
   nodes$font <- GetNodesFont(nodes)
-  nodes <- GetCoords(nodes)
+  nodes <- GetCoords(nodes, query.c)
   return(nodes)
 }
 
@@ -102,11 +102,18 @@ GetNodesFont <- function(nodes) {
   return(font)
 }
 
-GetCoords <- function(nodes) {
+GetCoords <- function(nodes, query.c) {
   radius <- 5
   scale <- 75
-  remove <- nrow(nodes) - 12
-  angles <- rev(seq(-(pi/2), (3/2) * pi, (2 * pi)/12))[1:nrow(nodes)]
+  angles <- rev(seq(-(pi/2), (3/2) * pi, (2 * pi)/12))[1:12]
+  angles <- unlist(lapply(1:12, function(x) {
+    if(is.na(query.c[x])) {
+      NA
+    } else {
+      angles[x]
+    }
+  }))
+  angles <- angles[!is.na(angles)]
   nodes$x <- scale * radius * cos(angles)
   nodes$y <- -scale * radius * sin(angles)
   return(nodes) 
@@ -137,7 +144,7 @@ GetToFrom <- function(data, query.c) {
     intersect(toupper(paste0("#", x)), toupper(query.c))
   })
   # Sometimes there is no hashtag?? Different font, will need to look into
-  print(matched)
+  #print(matched)
   # Generate a two column matrix that takes each entry in the matched list and 
   #    makes an edge for each combination of node in that entry
   edges <- do.call(rbind, lapply(matched, function (x) {
@@ -195,5 +202,6 @@ StringQueryToVector <- function(query.string) {
   query.c <- unlist(strsplit(query.string, " OR "))
   query.c <- unlist(strsplit(query.c, ", "))
   query.c <- unlist(strsplit(query.c, " "))
+  query.c[(length(query.c) + 1):12] <- NA
   return(query.c)
 }

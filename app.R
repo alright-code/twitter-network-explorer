@@ -141,7 +141,7 @@ campfireApp(
       }
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
-        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", serverValues$tweets.collected, "</font>", sep = "")
+        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", nrow(serverValues$data), "</font>", sep = "")
         str2 <- "placeholder"
         HTML(paste(str1, str2, sep = '<br/>'))
       }
