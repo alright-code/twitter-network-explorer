@@ -48,7 +48,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       query.c.nna <- serverValues$query.c[!is.na(serverValues$query.c)]
       serverValues$data <- GetData(query.c.nna,
                                    serverValues$number.tweets,
-                                   FALSE)
+                                   FALSE, serverValues$search.type)
       serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
       serverValues$edges <- GetEdges(serverValues$data, query.c.nna)
       serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)

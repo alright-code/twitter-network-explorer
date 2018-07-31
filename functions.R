@@ -4,10 +4,10 @@
 
 # Search twitter for n.tweets tweets matching the query and whether to include rts,
 #   return a data frame of those tweets
-GetData <- function(query.c, num.tweets, include.rts) {
+GetData <- function(query.c, num.tweets, include.rts, type) {
   query.string <- paste(query.c, collapse = " OR ")
   data <- search_tweets(query.string, n = num.tweets, include_rts = include.rts,
-                        token = token, type = 'mixed')
+                        token = token, type = type)
   return(data)
 }
 

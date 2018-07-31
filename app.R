@@ -31,6 +31,9 @@ campfireApp(
     sliderInput(inputId = "number.tweets",
                 label = "Choose number of tweets for the search:",
                 min = 50, max = 10000, value = 500),
+    selectInput(inputId = "search.type",
+                label = "Search Type:",
+                choices = list("recent","mixed","popular")),
     actionButton(inputId = "update",
                  label = "Update"),
     style = "position: absolute; 
