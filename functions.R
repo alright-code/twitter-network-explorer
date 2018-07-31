@@ -202,6 +202,8 @@ StringQueryToVector <- function(query.string) {
   query.c <- unlist(strsplit(query.string, " OR "))
   query.c <- unlist(strsplit(query.c, ", "))
   query.c <- unlist(strsplit(query.c, " "))
-  query.c[(length(query.c) + 1):12] <- NA
+  if(length(query.c) < 12) {
+    query.c[(length(query.c) + 1):12] <- NA
+  }
   return(query.c)
 }
