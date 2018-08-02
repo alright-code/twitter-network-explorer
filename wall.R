@@ -48,19 +48,32 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
 
 # Color the hashtags in a string using HTML
 ColorHashtags <- function(string, query.c) {
-  string.c <- unlist(strsplit(string, "[ (\n)]"))
-  hashtag.indices <- grep("#", string.c)
-  colored.string.c <- lapply(1:length(string.c), function(x) {
-    if(x %in% hashtag.indices) {
-      if(toupper(string.c[[x]]) %in% toupper(query.c)) {
-        paste('<font color=', color.blue, '>', string.c[[x]], '</font>', sep = "")
-      } else {
-        paste('<font color=', color.orange, '>', string.c[[x]], '</font>', sep = "")  
-      }
+  hashtags <- str_extract_all(string, "#(\\d|\\w)+")
+  for(hashtag in hashtags[[1]]) {
+    if(toupper(hashtag) %in% toupper(query.c)) {
+      replacement <- paste0('<font color=', color.blue, '>', hashtag, '</font>')
     } else {
-      string.c[[x]]
+      replacement <- paste0('<font color=', color.orange, '>', hashtag, '</font>')
     }
-  })
-  colored.string <- paste(colored.string.c, collapse = " ")
-  return(colored.string)
+    string <- str_replace_all(string, hashtag, replacement)
+  }
+  return(string)
+  # print(string)
+  # string.c <- unlist(strsplit(string, "[ (\n\n)(\n)]"))
+  # print(string.c)
+  # stop()
+  # hashtag.indices <- grep("#(\\d|\\w)+", string.c)
+  # colored.string.c <- lapply(1:length(string.c), function(x) {
+  #   if(x %in% hashtag.indices) {
+  #     if(toupper(string.c[[x]]) %in% toupper(query.c)) {
+  #       paste('<font color=', color.blue, '>', string.c[[x]], '</font>', sep = "")
+  #     } else {
+  #       paste('<font color=', color.orange, '>', string.c[[x]], '</font>', sep = "")  
+  #     }
+  #   } else {
+  #     string.c[[x]]
+  #   }
+  # })
+  # colored.string <- paste(colored.string.c, collapse = " ")
+  # return(colored.string)
 }

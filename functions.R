@@ -132,7 +132,6 @@ GetEdgesColors <- function(edges) {
 
 StringQueryToVector <- function(query.string) {
   query.c <- scan(text = query.string, what = "character", quiet = TRUE)
-  print(query.c)
   if(length(query.c) < 12) {
     query.c[(length(query.c) + 1):12] <- NA
   }
