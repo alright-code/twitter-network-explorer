@@ -26,7 +26,9 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
                   overflow-x: hidden;',
                            if(nrow(data.subset) > 0) {
                              lapply(1:nrow(data.subset), function(y) {
-                               colored.text <- ColorHashtags(data.subset$text[[y]], query.c[!is.na(query.c)])
+                               colored.text <- ColorHashtags(data.subset$text[[y]],
+                                                             query.c[!is.na(query.c)],
+                                                             data.subset$urls_t.co[[y]])
                                tags$div(style='padding: 0px;',
                                         tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")), 
                                         tags$p(HTML(colored.text)),
@@ -47,7 +49,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
 }
 
 # Color the hashtags in a string using HTML
-ColorHashtags <- function(string, query.c) {
+ColorHashtags <- function(string, query.c, urls) {
   hashtags <- str_extract_all(string, "#(\\d|\\w)+")
   for(hashtag in hashtags[[1]]) {
     if(toupper(hashtag) %in% toupper(query.c)) {
@@ -57,23 +59,11 @@ ColorHashtags <- function(string, query.c) {
     }
     string <- str_replace_all(string, hashtag, replacement)
   }
+  for(url in urls) {
+    if(!is.na(url)) {
+      replacement <- paste0('<a href="url">', url, '</a>')
+      string <- str_replace_all(string, url, replacement)
+    }
+  }
   return(string)
-  # print(string)
-  # string.c <- unlist(strsplit(string, "[ (\n\n)(\n)]"))
-  # print(string.c)
-  # stop()
-  # hashtag.indices <- grep("#(\\d|\\w)+", string.c)
-  # colored.string.c <- lapply(1:length(string.c), function(x) {
-  #   if(x %in% hashtag.indices) {
-  #     if(toupper(string.c[[x]]) %in% toupper(query.c)) {
-  #       paste('<font color=', color.blue, '>', string.c[[x]], '</font>', sep = "")
-  #     } else {
-  #       paste('<font color=', color.orange, '>', string.c[[x]], '</font>', sep = "")  
-  #     }
-  #   } else {
-  #     string.c[[x]]
-  #   }
-  # })
-  # colored.string <- paste(colored.string.c, collapse = " ")
-  # return(colored.string)
 }
