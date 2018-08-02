@@ -30,10 +30,10 @@ campfireApp(
     textAreaInput("query", "Hashtags", default.query.string, height = '200px'),
     sliderInput(inputId = "number.tweets",
                 label = "Choose number of tweets for the search:",
-                min = 50, max = 10000, value = 50),
+                min = 50, max = 1000, value = 50),
     selectInput(inputId = "search.type",
                 label = "Search Type:",
-                choices = list("recent","mixed","popular")),
+                choices = list("recent", "mixed", "popular")),
     actionButton(inputId = "update",
                  label = "Update"),
     style = "position: absolute; 
@@ -145,8 +145,10 @@ campfireApp(
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
         str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", nrow(serverValues$data), "</font>", sep = "")
-        str2 <- "placeholder"
-        HTML(paste(str1, str2, sep = '<br/>'))
+        HTML(str1)
+      } else if(serverValues$type == "load") {
+        str1 <- paste("<font color=", color.white, "> Loading New Tweets... ", "</font>", sep = "")
+        HTML(str1)
       }
     })
     
