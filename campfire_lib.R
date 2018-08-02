@@ -95,13 +95,12 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
     
     observeEvent(input$delete_node, {
       UpdateValues()
-      node.index <- which(toupper(serverValues$query.c) %in% input$delete_node)
+      node.index <- which(serverValues$query.c %in% input$delete_node)
       serverValues$col.list[[node.index]] <- column(width = 1,
                                                     textInput(paste0("text.column.", node.index), node.index),
                                                     actionButton(paste0("button.column.", node.index), NULL))
       serverValues$query.c[[node.index]] <- NA
       serverValues$data.subset <- NULL
-      UpdateButton()
     })
     
     # Yikes

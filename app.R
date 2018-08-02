@@ -30,7 +30,7 @@ campfireApp(
     textAreaInput("query", "Hashtags", default.query.string, height = '200px'),
     sliderInput(inputId = "number.tweets",
                 label = "Choose number of tweets for the search:",
-                min = 50, max = 10000, value = 500),
+                min = 50, max = 10000, value = 50),
     selectInput(inputId = "search.type",
                 label = "Search Type:",
                 choices = list("recent","mixed","popular")),
@@ -171,7 +171,9 @@ campfireApp(
           coord_flip() + 
           labs(x = "Screen Name", y = "Tweets", title = "Top 10 Users") + 
           theme_dark() +
-          theme(plot.background = element_rect(fill = color.back), axis.text = element_text(size = 20, colour = "#f0f0f0"), text = element_text(size = 20, colour = "#1D8DEE"))
+          theme(plot.background = element_rect(fill = color.back),
+                axis.text = element_text(size = 20, colour = color.white),
+                text = element_text(size = 20, colour = color.blue))
       }
     
     })
@@ -181,16 +183,19 @@ campfireApp(
         serverValues$data.subset %>%
           unnest(hashtags) %>%
           mutate(hashtags = toupper(hashtags)) %>%
-          filter(!(paste("#", hashtags, sep = "") %in% toupper(serverValues$query.c))) %>%
+          filter(!(paste("#", hashtags, sep = "") %in% toupper(unique(serverValues$data$query)))) %>%
           count(hashtags) %>%
           arrange(desc(n)) %>%
           slice(1:10) %>%
           ggplot(aes(reorder(hashtags, n), n)) +
-          geom_col(fill = color.blue, color = color.blue) +
-          coord_flip() +
-          labs(x = "Hashtag", y = "Frequency", title = "Top 10 Hashtags") +
-          theme_dark() +
-          theme(panel.border = element_blank(), plot.background = element_rect(fill = color.back), axis.text = element_text(size = 20, colour = "#f0f0f0"), text = element_text(size = 20, colour = "#1D8DEE"))
+            geom_col(fill = color.blue, color = color.blue) +
+            coord_flip() +
+            labs(x = "Hashtag", y = "Frequency", title = "Top 10 Hashtags") +
+            theme_dark() +
+            theme(panel.border = element_blank(),
+                  plot.background = element_rect(fill = color.back),
+                  axis.text = element_text(size = 20, colour = color.white),
+                  text = element_text(size = 20, colour = color.blue))
       }
       
     })

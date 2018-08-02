@@ -5,39 +5,24 @@
 # Search twitter for n.tweets tweets matching the query and whether to include rts,
 #   return a data frame of those tweets
 GetData <- function(query.c, num.tweets, include.rts, type) {
-  query.string <- paste(query.c, collapse = " OR ")
-  data <- search_tweets(query.string, n = num.tweets, include_rts = include.rts,
-                        token = token, type = type)
+  data <- search_tweets2(query.c, n = num.tweets, include_rts = include.rts,
+                        token = token, type = type, lang = "en", verbose = FALSE)
   return(data)
 }
 
 # Input: data dataframe, query
 # Output: dataframe only with tweets including the specified hashtags in query
 GetDataSubset <- function(data, query.c) {
-  # Remove hashtag symbols from query 
-  clean.query.c <- toupper(sapply(query.c, USE.NAMES = FALSE, function(x) {
-    gsub('#', '', x)
-  }))
-  tmp <- sapply(data$hashtags, function(x) {
-    if(all(clean.query.c %in% toupper(x))) {
-      return(TRUE)
-    } else {
-      return(FALSE)
-    }
-  })
-  data.subset <- filter(data, tmp)
-  return(data.subset)
-}
-
-GetAllDataSubsets <- function(data, query.c) {
-  all.subsets <- vector("list", 12)
-  names(all.subsets) <- toupper(query.c)
-  x <- 1
-  for(hashtag in toupper(query.c)) {
-    all.subsets[[hashtag]] <- list(index = x, data = GetDataSubset(data, hashtag)) 
-    x <- x + 1
+  if(length(query.c) == 1) {
+    filter(data, query %in% query.c) %>%
+      distinct(status_id, .keep_all = TRUE)
+  } else {
+    filter(data, query %in% query.c) %>%
+      group_by(status_id) %>%
+      filter(n() > 1) %>%
+      ungroup() %>%
+      distinct(status_id, .keep_all = TRUE)
   }
-  return(all.subsets)
 }
 
 ###############################################################################
@@ -47,21 +32,12 @@ GetAllDataSubsets <- function(data, query.c) {
 # Input: data dataframe, query vector
 # Output: Data frame with id and value columns
 GetNodes <- function(data, query.c) {
-  nodes <- GetId(query.c[!is.na(query.c)])
+  nodes <- data.frame(id = unique(data$query),
+                      label = unique(data$query),
+                      color = color.blue,
+                      font = "10px arial #fd7e14")
   nodes$value <- GetNodesValue(data, nodes)
-  nodes$label <- GetNodesLabel(nodes)
-  nodes$color <- GetNodesColor(nodes)
-  nodes$font <- GetNodesFont(nodes)
   nodes <- GetCoords(nodes, query.c)
-  return(nodes)
-}
-
-# Input: query vector
-# Output: nodes dataframe with id column
-GetId <- function(query.c) {
-  # Create id vector to store included hashtags, for consistancy use uppercase
-  id <- toupper(query.c)
-  nodes <- data.frame(id = id)
   return(nodes)
 }
 
@@ -71,35 +47,10 @@ GetNodesValue <- function(data, nodes) {
   nodes.rows <- nrow(nodes)
   value <- c(length = nodes.rows)
   # Determine how many tweets include each hashtag
-  all.hashtags <- paste('#',toupper(unlist(data$hashtags)), sep = '')
   for(i in 1:nodes.rows) {
-    value[i] <- sum(all.hashtags == nodes$id[i])
+    value[i] <- sum(data$query == nodes$id[i])
   }
   return(value)
-}
-
-# Input: nodes dataframe
-# Ouput: nodes label column
-GetNodesLabel <- function(nodes) {
-  return(nodes$id)
-}
-
-# Input: nodes dataframe
-# Ouput: nodes color column
-GetNodesColor <- function(nodes) {
-  nodes.rows <- nrow(nodes)
-  color <- c(length = nodes.rows)
-  color[1:nodes.rows] <- color.blue
-  return(color)
-}
-
-# Input: nodes dataframe
-# Ouput: nodes font column
-GetNodesFont <- function(nodes) {
-  nodes.rows <- nrow(nodes)
-  font <- character(length = nodes.rows)
-  font[1:nodes.rows] <- '0px arial #fd7e14'
-  return(font)
 }
 
 GetCoords <- function(nodes, query.c) {
@@ -127,8 +78,7 @@ GetCoords <- function(nodes, query.c) {
 # Output: Data frame with to and from columns and attribute columns
 GetEdges <- function(data, query.c) {
   edges <- GetToFrom(data, query.c)
-  if(nrow(edges) > 0) {
-    edges <- GetEdgesValues(edges)
+  if(!is.null(edges)) {
     edges <- GetEdgesIndices(edges)
     edges <- GetEdgesColors(edges)
   }
@@ -138,40 +88,22 @@ GetEdges <- function(data, query.c) {
 # Input: data dataframe, query vector
 # Output: Two column dataframe with to and from columns
 GetToFrom <- function(data, query.c) {
-  # Create a list identical to data$hashtags, but remove the hashtags not 
-  #   searched for. Everything is uppercase
-  matched <- lapply(data$hashtags, function(x) {
-    intersect(toupper(paste0("#", x)), toupper(query.c))
-  })
-  # Sometimes there is no hashtag?? Different font, will need to look into
-  #print(matched)
-  # Generate a two column matrix that takes each entry in the matched list and 
-  #    makes an edge for each combination of node in that entry
-  edges <- do.call(rbind, lapply(matched, function (x) {
-    x.sorted <- sort(x)
-    if(length(x.sorted) > 1) {
-      t(combn(x.sorted, 2))
-    } else {
-      tmp <- matrix(nrow = 1, ncol = 2)
-      tmp[1,1] <- x.sorted
-      tmp
-    }
-  }))
-  edges <- as.data.frame(edges)
-  # Remove edges that lead nowhere
-  edges <- edges[!is.na(edges[ ,2]), ]
-  colnames(edges) <- c('to', 'from')
-  return(edges)
-}
-
-# Input: Edges dataframe
-# Output: Edges dataframe with value column
-GetEdgesValues <- function(edges) {
-  # Use table to find the frequencies of edges
-  edges <- data.frame(table(edges))
-  colnames(edges) <- c('to', 'from', 'value')
-  # Remove same edge to same edge entries
-  edges <- edges[edges$value != 0, ]
+  cleaned <- data %>%
+    group_by(status_id) %>%
+    filter(n() > 1)
+  if(nrow(cleaned) == 0) {
+    edges <- NULL
+  } else {
+    cleaned <- cleaned %>%
+      transmute(query = list(t(combn(query, 2)))) %>%
+      distinct() %>%
+      select(query)
+    edges <- as_tibble(do.call(rbind, cleaned$query)) %>%
+      group_by(V1, V2) %>%
+      mutate(value = n()) %>%
+      distinct() %>%
+      setNames(c("to", "from", "value"))
+  }
   return(edges)
 }
 
