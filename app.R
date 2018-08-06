@@ -127,8 +127,8 @@ campfireApp(
       if(serverValues$type == "node") {
         node.name <- serverValues$current_node_id
         node.size <- nrow(serverValues$data.subset)
-        str1 <- paste("<font color=", color.white, "> Current Node: ", node.name, "</font>", sep = "")
-        str2 <- paste("<font color=", color.white, "> Node Size: ", node.size, "</font>", sep = "")
+        str1 <- paste0("<font color=", color.white, "> Current Node: ", node.name, "</font>")
+        str2 <- paste0("<font color=", color.white, "> Node Size: ", node.size, "</font>")
         HTML(paste(str1, str2, sep = '<br/>'))
       }
       # Stuff to print when edge is selected
@@ -138,16 +138,18 @@ campfireApp(
         query <- c(as.character(edge$to), as.character(edge$from))
         edge.name <- paste(query, collapse = " AND ")
         edge.size <- nrow(serverValues$data.subset)
-        str1 <- paste("<font color=", color.white, "> Current Edge: ", edge.name, "</font>", sep = "")
-        str2 <- paste("<font color=", color.white, "> Edge Size: ", edge.size, "</font>", sep = "")
+        str1 <- paste0("<font color=", color.white, "> Current Edge: ", edge.name, "</font>")
+        str2 <- paste0("<font color=", color.white, "> Edge Size: ", edge.size, "</font>")
         HTML(paste(str1, str2, sep = '<br/>'))
       }
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
-        str1 <- paste("<font color=", color.white, "> Total number of tweets found: ", nrow(serverValues$data), "</font>", sep = "")
-        HTML(str1)
+        str1 <- paste0("<font color=", color.white, "> Total number of tweets found: ", nrow(serverValues$data), "</font>")
+        str2 <- a(serverValues$url, href=serverValues$url, target="_blank")
+        browseURL(serverValues$url)
+        HTML(paste(str1, str2, sep = '<br/>'))
       } else if(serverValues$type == "load") {
-        str1 <- paste("<font color=", color.white, "> Loading New Tweets... ", "</font>", sep = "")
+        str1 <- paste0("<font color=", color.white, "> Loading New Tweets... ", "</font>")
         HTML(str1)
       }
     })
@@ -156,7 +158,7 @@ campfireApp(
       fluidPage(
         fluidRow(
           tags$script(HTML(
-            '$(document).on("click", ".hashtag", function () {
+            '$(document).on("click", ".clickable", function () {
               var text =  $(this).text();
               Shiny.onInputChange("clicked_text", text);
             });'
