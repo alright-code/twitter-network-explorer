@@ -28,6 +28,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
                              lapply(1:nrow(data.subset), function(y) {
                                colored.text <- ColorHashtags(data.subset$text[[y]],
                                                              query.c[!is.na(query.c)],
+                                                             data.subset$hashtags[[y]],
                                                              data.subset$urls_t.co[[y]])
                                tags$div(style='padding: 0px;',
                                         tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")), 
@@ -49,9 +50,10 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
 }
 
 # Color the hashtags in a string using HTML
-ColorHashtags <- function(string, query.c, urls) {
-  hashtags <- str_extract_all(string, "#(\\d|\\w)+")
-  for(hashtag in hashtags[[1]]) {
+ColorHashtags <- function(string, query.c, hashtags, urls) {
+  hashtags <- paste0("#", hashtags)
+  hashtags <- hashtags[order(nchar(hashtags), hashtags, decreasing = TRUE)]
+  for(hashtag in hashtags) {
     if(toupper(hashtag) %in% toupper(query.c)) {
       replacement <- paste0('<font color=', color.blue, '>', hashtag, '</font>')
     } else {

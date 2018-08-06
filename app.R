@@ -15,8 +15,6 @@ color.blue <- "#1D8DEE"
 color.back <- "#151E29"
 color.offback <- "#1B2737"
 
-url.pattern <- "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
-
 source("functions.R")
 source("wall.R")
 source("campfire_lib.R")
