@@ -57,7 +57,7 @@ ColorHashtags <- function(string, query.c, hashtags, urls) {
     if(toupper(hashtag) %in% toupper(query.c)) {
       replacement <- paste0('<font color=', color.blue, '>', hashtag, '</font>')
     } else {
-      replacement <- paste0('<font color=', color.orange, '>', hashtag, '</font>')
+      replacement <- paste0('<span class="hashtag"><font color=', color.orange, '>', hashtag, '</font></span>')
     }
     string <- str_replace_all(string, hashtag, replacement)
   }

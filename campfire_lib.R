@@ -105,6 +105,15 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       serverValues$data.subset <- NULL
     })
     
+    observeEvent(input$clicked_text, {
+      UpdateValues()
+      index <- which(is.na(serverValues$query.c))[1]
+      if(!is.na(index)) {
+        serverValues$query.c[[index]] <- serverValues$clicked_text
+        UpdateButton()
+      }
+    })
+    
     # Yikes
     observeEvent({
       input$button.column.1

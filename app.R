@@ -155,6 +155,12 @@ campfireApp(
     output$wall.ui <- renderUI({
       fluidPage(
         fluidRow(
+          tags$script(HTML(
+            '$(document).on("click", ".hashtag", function () {
+              var text =  $(this).text();
+              Shiny.onInputChange("clicked_text", text);
+            });'
+          )),
           lapply(1:12, function(col.num) {
             serverValues$col.list[[col.num]] 
           })
