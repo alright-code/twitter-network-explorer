@@ -95,6 +95,8 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
         } 
       })
     
+    # Observe when a node is chosen to be deleted after a doubleclick, the
+    # remove the data associated
     observeEvent(input$delete_node, {
       UpdateValues()
       node.index <- which(serverValues$query.c %in% input$delete_node)
@@ -105,6 +107,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       serverValues$data.subset <- NULL
     })
     
+    # Observe when text on the wall is clicked, and update query and wall/floor
     observeEvent(input$clicked_text, {
       UpdateValues()
       index <- which(is.na(serverValues$query.c))[1]
@@ -114,7 +117,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
       }
     })
     
-    # Yikes
+    # Observe all wall buttons, then update query and wall/floor
     observeEvent({
       input$button.column.1
     }, {
