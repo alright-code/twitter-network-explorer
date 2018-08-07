@@ -50,14 +50,14 @@ campfireApp(
   
   floor = div(
     visNetworkOutput("network", width = "1920px", height = "1080px"),
-    style = paste("position: absolute; 
+    style = paste0("position: absolute; 
            top: 50%; left: 50%;
            margin-right: -50%; 
            transform: translate(-50%, -50%);
-           background: ", color.back, ";", sep = "")
+           background: ", color.back, ";")
   ),
   
-  monitor = div(fluidPage(
+  datamonitor = div(fluidPage(
     fluidRow(
       column(6,
              plotOutput("top.users.bar.extern", height = "1010px")
@@ -71,8 +71,12 @@ campfireApp(
              uiOutput("tweets.info")
              )
     )),
-    style = paste("background: ", color.back, ";", sep = "")
+    style = paste0("background: ", color.back, ";")
   ),
+  
+  urlmonitor = div(fluidPage(
+    htmlOutput("frame")
+  )),
   
   serverFunct = function(serverValues, output) {
     
@@ -146,7 +150,7 @@ campfireApp(
       else if(serverValues$type == "none") {
         str1 <- paste0("<font color=", color.white, "> Total number of tweets found: ", nrow(serverValues$data), "</font>")
         str2 <- a(serverValues$url, href=serverValues$url, target="_blank")
-        browseURL(serverValues$url)
+        #browseURL(serverValues$url)
         HTML(paste(str1, str2, sep = '<br/>'))
       } else if(serverValues$type == "load") {
         str1 <- paste0("<font color=", color.white, "> Loading New Tweets... ", "</font>")
@@ -158,10 +162,10 @@ campfireApp(
       fluidPage(
         fluidRow(
           tags$script(HTML(
-            '$(document).on("click", ".clickable", function () {
+            "$(document).on('click', '.clickable', function () {
               var text =  $(this).text();
-              Shiny.onInputChange("clicked_text", text);
-            });'
+              Shiny.onInputChange('clicked_text', text);
+            });"
           )),
           lapply(1:12, function(col.num) {
             serverValues$col.list[[col.num]] 
@@ -208,6 +212,13 @@ campfireApp(
                   text = element_text(size = 20, colour = color.blue))
       }
       
+    })
+    
+    output$frame <- renderUI({
+      if(!is.null(serverValues$url)) {
+        redirectScript <- paste0("window.open('", serverValues$url, "');")
+        tags$script(HTML(redirectScript))
+      }
     })
     
   }

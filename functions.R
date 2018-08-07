@@ -32,8 +32,8 @@ GetDataSubset <- function(data, query.c) {
 # Input: data dataframe, query vector
 # Output: Data frame with id and value columns
 GetNodes <- function(data, query.c) {
-  nodes <- data.frame(id = unique(data$query),
-                      label = unique(data$query),
+  nodes <- data.frame(id = query.c[!is.na(query.c)],
+                      label = query.c[!is.na(query.c)],
                       color = color.blue,
                       font = "10px arial #fd7e14")
   nodes$value <- GetNodesValue(data, nodes)

@@ -27,8 +27,8 @@ token <- create_token(
 # MULTIWINDOW SHINY
 ###############################################################################
 
-campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serverFunct = NA) {
-  ui <- campfireUI(controller, wall, floor, monitor)
+campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA, urlmonitor = NA, serverFunct = NA) {
+  ui <- campfireUI(controller, wall, floor, datamonitor, urlmonitor)
   
   serverValues <- reactiveValues()
   
@@ -78,6 +78,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
     observeEvent({
       input$current_node_id
       input$current_edge_index
+      input$type
       }, {
         UpdateValues()
         # When neither an edge or node is selected 
@@ -225,7 +226,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, monitor=NA, serve
   shinyApp(ui, server = campfire_server)
 }
 
-campfireUI = function(controller, wall, floor, monitor) {
+campfireUI = function(controller, wall, floor, datamonitor, urlmonitor) {
   ui <- shinyUI(bootstrapPage(
     HTML('<script type="text/javascript">
          $(function() {
@@ -243,7 +244,8 @@ campfireUI = function(controller, wall, floor, monitor) {
         HTML('<h2><a href="?Controller">Controller</a></h2>'),
         HTML('<h2><a href="?Wall">Wall</a></h2>'),
         HTML('<h2><a href="?Floor">Floor</a></h2>'),
-        HTML('<h2><a href="?Monitor">External Monitor</a></h2>'),
+        HTML('<h2><a href="?DataMonitor">Data Monitor</a></h2>'),
+        HTML('<h2><a href="?URLMonitor">URL Monitor</a></h2>'),
         style='position: absolute; 
         top: 50%; left: 50%; 
         margin-right: -50%; 
@@ -258,8 +260,11 @@ campfireUI = function(controller, wall, floor, monitor) {
     div(class="Floor Window",
         floor
     ),
-    div(class="Monitor Window",
-        monitor
+    div(class="DataMonitor Window",
+        datamonitor
+    ),
+    div(class="URLMonitor Window",
+        urlmonitor
     )
     
     ))
