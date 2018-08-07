@@ -122,17 +122,24 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       }
     })
     
+    # Observe when a drag event ends, and adjust columns on wall based on movement
     observeEvent(input$position, {
       UpdateValues()
       angle <- cart2pol(serverValues$position[[1]]$x, -serverValues$position[[1]]$y)$theta
       angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
-      angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[2:3])
+      angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[2:4])
+      # Find the closest angle value to the newly calculated
       new.index <- which(abs(angles-angle)==min(abs(angles-angle)))
+      # If angle is close to 2pi, set the index to 10
+      if(new.index == 13) {
+        new.index <- 10
+      }
+      # Store old values to move the old node
       tmp.node <- serverValues$query.c[new.index]
       tmp.index <- which(serverValues$query.c %in% serverValues$current_node_id)
-      print(serverValues$current_node_id)
-      print(tmp.node)
-      print(tmp.index)
+      # print(serverValues$current_node_id)
+      # print(tmp.node)
+      # print(tmp.index)
       serverValues$query.c[new.index] <- serverValues$current_node_id
       serverValues$query.c[tmp.index] <- tmp.node
       serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
