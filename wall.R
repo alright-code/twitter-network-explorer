@@ -6,7 +6,7 @@ UpdateWall <- function(data, query.c) {
     if(is.na(query.c[col.num])) {
       column(width = 1,
              textInput(paste0("text.column.", col.num), col.num),
-             actionButton(paste0("button.column.", col.num), NULL))
+             actionButton(paste0("button.column.", col.num), "Submit"))
     } else {
       data.subset <- GetDataSubset(data, query.c[col.num])
       UpdateColumn(data.subset, query.c, col.num)
@@ -31,16 +31,9 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
                                                              data.subset$hashtags[[y]],
                                                              data.subset$urls_t.co[[y]])
                                tags$div(style='padding: 0px;',
-                                        tags$h3(paste("@", data.subset$screen_name[[y]], sep = "")), 
+                                        tags$h3(paste0("@", data.subset$screen_name[[y]])), 
                                         tags$p(HTML(colored.text)),
-                                        tags$header(
-                                          tags$h5("Favorites:"),
-                                          tags$span(data.subset$favorite_count[[y]])
-                                        ),
-                                        tags$header(
-                                          tags$h5("Retweets:"),
-                                          tags$span(data.subset$retweet_count[[y]])
-                                        )
+                                        tags$p(HTML(paste("&#x1F499", data.subset$favorite_count[[y]], "&#x1F504", data.subset$retweet_count[[y]])))
                                )
                              })
                            }

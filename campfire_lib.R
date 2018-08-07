@@ -103,6 +103,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
                                                     textInput(paste0("text.column.", node.index), node.index),
                                                     actionButton(paste0("button.column.", node.index), NULL))
       serverValues$query.c[[node.index]] <- NA
+      #updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
       serverValues$data.subset <- NULL
     })
     
@@ -135,14 +136,15 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       # Store old values to move the old node
       tmp.node <- serverValues$query.c[new.index]
       tmp.index <- which(serverValues$query.c %in% serverValues$current_node_id)
-      # print(serverValues$current_node_id)
-      # print(tmp.node)
-      # print(tmp.index)
+      tmp.col <- serverValues$col.list[[new.index]]
+      # Change the position of the node moved onto
       visNetworkProxy("network") %>%
         visMoveNode(tmp.node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
       serverValues$query.c[new.index] <- serverValues$current_node_id
       serverValues$query.c[tmp.index] <- tmp.node
-      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
+      serverValues$col.list[[new.index]] <- serverValues$col.list[[tmp.index]]
+      serverValues$col.list[[tmp.index]] <- tmp.col
+      #serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
     })
     
     # Observe all wall buttons, then update query and wall/floor
