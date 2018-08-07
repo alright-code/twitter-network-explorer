@@ -1,6 +1,5 @@
-###############################################################################
-# DATA FUNCTIONS
-###############################################################################
+
+# Data Functions ----------------------------------------------------------
 
 # Search twitter for n.tweets tweets matching the query and whether to include rts,
 #   return a data frame of those tweets
@@ -25,9 +24,7 @@ GetDataSubset <- function(data, query.c) {
   }
 }
 
-###############################################################################
-# NODE FUNCTIONS
-###############################################################################
+# Node Functions ----------------------------------------------------------
 
 # Input: data dataframe, query vector
 # Output: Data frame with id and value columns
@@ -71,9 +68,7 @@ GetCoords <- function(nodes, query.c) {
   return(nodes) 
 }
 
-###############################################################################
-# EDGE FUNCTIONS
-###############################################################################
+# Edge Functions ----------------------------------------------------------
 
 # Input: data dataframe, query vector
 # Output: Data frame with to and from columns and attribute columns
@@ -127,9 +122,7 @@ GetEdgesColors <- function(edges) {
   return(edges)
 }
 
-###############################################################################
-# OTHER FUNCTIONS
-###############################################################################
+# Misc Functions ----------------------------------------------------------
 
 StringQueryToVector <- function(query.string) {
   query.c <- scan(text = query.string, what = "character", quiet = TRUE)

@@ -1,6 +1,5 @@
-###############################################################################
-# SHINY DEFAULTS 
-###############################################################################
+
+# Defaults ----------------------------------------------------------------
 
 # Default hashtags
 default.query.c <- c("#DataScience", "#DataAnalytics",
@@ -23,9 +22,8 @@ token <- create_token(
   FALSE
 )
 
-###############################################################################
-# MULTIWINDOW SHINY
-###############################################################################
+
+# MW Shiny ----------------------------------------------------------------
 
 campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA, urlmonitor = NA, serverFunct = NA) {
   ui <- campfireUI(controller, wall, floor, datamonitor, urlmonitor)

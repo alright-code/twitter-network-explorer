@@ -19,10 +19,6 @@ source("functions.R")
 source("wall.R")
 source("campfire_lib.R")
 
-###############################################################################
-# MULTIWINDOW SHINY
-###############################################################################
-
 campfireApp(
   
   controller = div(
@@ -157,9 +153,8 @@ campfireApp(
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
         str1 <- paste0("<font color=", color.white, "> Total number of tweets found: ", nrow(serverValues$data), "</font>")
-        str2 <- a(serverValues$url, href=serverValues$url, target="_blank")
-        #browseURL(serverValues$url)
-        HTML(paste(str1, str2, sep = '<br/>'))
+        #str2 <- a(serverValues$url, href=serverValues$url, target="_blank")
+        HTML(str1)
       } else if(serverValues$type == "load") {
         str1 <- paste0("<font color=", color.white, "> Loading New Tweets... ", "</font>")
         HTML(str1)
