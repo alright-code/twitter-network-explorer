@@ -57,13 +57,13 @@ ColorHashtags <- function(string, query.c, hashtags, urls) {
     if(toupper(hashtag) %in% toupper(query.c)) {
       replacement <- paste0('<font color=', color.blue, '>', hashtag, '</font>')
     } else {
-      replacement <- paste0('<span class="clickable"><font color=', color.orange, '>', hashtag, '</font></span>')
+      replacement <- paste0('<span class="clickable"><font color=', "#ee7e1d", '>', hashtag, '</font></span>')
     }
     string <- str_replace_all(string, hashtag, replacement)
   }
   for(url in urls) {
     if(!is.na(url)) {
-      replacement <- paste0('<span class="clickable"><font color=', color.pink, '>', url, '</font></span>')
+      replacement <- paste0('<span class="clickable"><font color=', "#ee1d8d", '>', url, '</font></span>')
       string <- str_replace_all(string, url, replacement)
     }
   }
