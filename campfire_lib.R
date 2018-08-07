@@ -268,7 +268,7 @@ campfireUI = function(controller, wall, floor, datamonitor, urlmonitor) {
         HTML('<h2><a href="?Wall">Wall</a></h2>'),
         HTML('<h2><a href="?Floor">Floor</a></h2>'),
         HTML('<h2><a href="?DataMonitor">Data Monitor</a></h2>'),
-        HTML('<h2><a href="?URLMonitor">URL Monitor</a></h2>'),
+        HTML('<h2><a href="?Monitor">URL Monitor</a></h2>'),
         style='position: absolute; 
         top: 50%; left: 50%; 
         margin-right: -50%; 
@@ -286,7 +286,7 @@ campfireUI = function(controller, wall, floor, datamonitor, urlmonitor) {
     div(class="DataMonitor Window",
         datamonitor
     ),
-    div(class="URLMonitor Window",
+    div(class="Monitor Window",
         urlmonitor
     )
     
