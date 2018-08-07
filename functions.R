@@ -56,7 +56,8 @@ GetNodesValue <- function(data, nodes) {
 GetCoords <- function(nodes, query.c) {
   radius <- 5
   scale <- 75
-  angles <- rev(seq(-(pi/2), (3/2) * pi, (2 * pi)/12))[1:12]
+  angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
+  angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[2:3])
   angles <- unlist(lapply(1:12, function(x) {
     if(is.na(query.c[x])) {
       NA

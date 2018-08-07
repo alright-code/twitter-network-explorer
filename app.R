@@ -4,7 +4,7 @@ library(rtweet)
 library(tidyverse)
 library(shinyjs)
 library(ggplot2)
-library(shinycssloaders)
+library(useful)
 
 ###Colors###
 color.green <- "#1dee7e"
@@ -103,7 +103,7 @@ campfireApp(
           # visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
           # Define behavior when clicking on nodes or edges
           visEvents(
-                    click = "function(properties) {
+                    click = "function() {
                               if(this.getSelectedNodes().length == 1) {
                                 Shiny.onInputChange('current_node_id', this.getSelectedNodes()[0]);
                                 Shiny.onInputChange('type', 'node');
@@ -114,13 +114,21 @@ campfireApp(
                                 Shiny.onInputChange('type', 'none');
                               }
                             }",
-                    doubleClick = "function(properties) {
+                    doubleClick = "function() {
                                      if(this.getSelectedNodes().length == 1) {
                                        Shiny.onInputChange('delete_node', this.getSelectedNodes()[0]);
                                        this.deleteSelected();
                                        Shiny.onInputChange('type', 'none');
                                      }
-                                   }"
+                                   }",
+                    dragEnd = "function() {
+                                 var sel = this.getSelectedNodes();
+                                 if(sel.length == 1) {
+                                   Shiny.onInputChange('current_node_id', this.getSelectedNodes()[0]);
+                                   Shiny.onInputChange('type', 'node');
+                                   Shiny.onInputChange('position', this.getPositions(sel[0]))
+                                 }
+                               }"
                   )
                   
       }

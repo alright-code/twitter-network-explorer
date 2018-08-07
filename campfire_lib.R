@@ -91,7 +91,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
           serverValues$data.subset <- GetDataSubset(serverValues$data, query)
         # When node is selected
         } else if(serverValues$type == "node") {
-          query <- input$current_node_id
+          query <- serverValues$current_node_id
           serverValues$data.subset <- GetDataSubset(serverValues$data, query)
         } 
       })
@@ -100,7 +100,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     # remove the data associated
     observeEvent(input$delete_node, {
       UpdateValues()
-      node.index <- which(serverValues$query.c %in% input$delete_node)
+      node.index <- which(serverValues$query.c %in% serverValues$delete_node)
       serverValues$col.list[[node.index]] <- column(width = 1,
                                                     textInput(paste0("text.column.", node.index), node.index),
                                                     actionButton(paste0("button.column.", node.index), NULL))
@@ -120,6 +120,22 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       } else {
         serverValues$url <- input$clicked_text
       }
+    })
+    
+    observeEvent(input$position, {
+      UpdateValues()
+      angle <- cart2pol(serverValues$position[[1]]$x, -serverValues$position[[1]]$y)$theta
+      angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
+      angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[2:3])
+      new.index <- which(abs(angles-angle)==min(abs(angles-angle)))
+      tmp.node <- serverValues$query.c[new.index]
+      tmp.index <- which(serverValues$query.c %in% serverValues$current_node_id)
+      print(serverValues$current_node_id)
+      print(tmp.node)
+      print(tmp.index)
+      serverValues$query.c[new.index] <- serverValues$current_node_id
+      serverValues$query.c[tmp.index] <- tmp.node
+      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
     })
     
     # Observe all wall buttons, then update query and wall/floor
