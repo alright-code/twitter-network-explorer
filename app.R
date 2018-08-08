@@ -6,6 +6,8 @@ library(shinyjs)
 library(ggplot2)
 library(useful)
 
+floor.domain <- NULL
+
 ###Colors###
 color.green <- "#1dee7e"
 color.pink <- "#ee1d8d"
@@ -74,10 +76,11 @@ campfireApp(
     htmlOutput("frame")
   )),
   
-  serverFunct = function(serverValues, output) {
+  serverFunct = function(serverValues, output, session) {
     
     output$network <- renderVisNetwork({
-    if(!is.null(serverValues$nodes)) {
+      floor.domain <<- getDefaultReactiveDomain()
+      if(!is.null(serverValues$nodes)) {
         visNetwork(serverValues$nodes, serverValues$edges) %>%
           visEdges(scaling = list("min" = 0), smooth = list("enabled" = TRUE)) %>%
           visNodes(scaling = list("min" = 10, "max" = 50)) %>%
@@ -228,6 +231,10 @@ campfireApp(
         redirectScript <- paste0("window.open('", serverValues$url, "');")
         tags$script(HTML(redirectScript))
       }
+    })
+    
+    observeEvent(serverValues$query.c, {
+      updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
     })
     
   }

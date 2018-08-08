@@ -33,10 +33,10 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
   # Default serverValues variables
   serverValues$initialized <- FALSE
   
-  campfire_server <- shinyServer(function(input, output) {
+  campfire_server <- shinyServer(function(input, output, session) {
     
     UpdateValues <- reactive({
-      for (inputId in names(input)) {
+      for(inputId in names(input)) {
         serverValues[[inputId]] <- input[[inputId]]
       }
     })
@@ -98,24 +98,31 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     # remove the data associated
     observeEvent(input$delete_node, {
       UpdateValues()
-      node.index <- which(serverValues$query.c %in% serverValues$delete_node)
-      serverValues$col.list[[node.index]] <- column(width = 1,
-                                                    textInput(paste0("text.column.", node.index), node.index),
-                                                    actionButton(paste0("button.column.", node.index), NULL))
-      serverValues$query.c[[node.index]] <- NA
-      #updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
+      index <- which(serverValues$query.c %in% serverValues$delete_node)
+      serverValues$query.c[node.index] <- NA
       serverValues$data.subset <- NULL
+      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
     })
     
     # Observe when text on the wall is clicked, and update query and wall/floor
     observeEvent(input$clicked_text, {
       UpdateValues()
       if(substr(serverValues$clicked_text, 1, 1) == "#") {
-        index <- which(is.na(serverValues$query.c))[1]
-        if(!is.na(index)) {
-          serverValues$query.c[[index]] <- serverValues$clicked_text
-          UpdateButton()
-        }
+        if(toupper(serverValues$clicked_text) %in% toupper(serverValues$query.c)) {
+          index <- which(toupper(serverValues$query.c) %in% toupper(serverValues$clicked_text))
+          text <- serverValues$query.c[index]
+          visNetworkProxy("network", session = floor.domain) %>%
+            visRemoveNodes(text)
+          serverValues$query.c[index] <- NA
+          serverValues$data.subset <- NULL
+          serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
+        } else {
+          index <- which(is.na(serverValues$query.c))[1]
+          if(!is.na(index)) {
+            serverValues$query.c[[index]] <- serverValues$clicked_text
+            UpdateButton()
+          }
+        } 
       } else {
         serverValues$url <- input$clicked_text
       }
@@ -128,7 +135,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
       angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[2:4])
       # Find the closest angle value to the newly calculated
-      new.index <- which(abs(angles-angle)==min(abs(angles-angle)))
+      new.index <- which(abs(angles - angle) == min(abs(angles - angle)))
       # If angle is close to 2pi, set the index to 10
       if(new.index == 13) {
         new.index <- 10
@@ -138,14 +145,18 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       tmp.index <- which(serverValues$query.c %in% serverValues$current_node_id)
       tmp.col <- serverValues$col.list[[new.index]]
       # Change the position of the node moved onto
-      visNetworkProxy("network") %>%
+      visNetworkProxy("network", session = floor.domain) %>%
         visMoveNode(tmp.node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
       serverValues$query.c[new.index] <- serverValues$current_node_id
       serverValues$query.c[tmp.index] <- tmp.node
       serverValues$col.list[[new.index]] <- serverValues$col.list[[tmp.index]]
       serverValues$col.list[[tmp.index]] <- tmp.col
-      #serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
     })
+    
+    # observeEvent(input$query.c, {
+    #   print("ok")
+    #   updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
+    # })
     
     # Observe all wall buttons, then update query and wall/floor
     observeEvent({
@@ -244,7 +255,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       UpdateButton()
     })
     
-    serverFunct(serverValues, output)
+    serverFunct(serverValues, output, session)
     
   })
   

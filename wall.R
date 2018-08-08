@@ -42,18 +42,19 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
   )
 }
 
-# Color the hashtags in a string using HTML
+# Color the hashtags and urls in a string using HTML
 ColorHashtags <- function(string, query.c, hashtags, urls) {
-  hashtags <- paste0("#", hashtags)
+  string.copy <- string
   hashtags <- hashtags[order(nchar(hashtags), hashtags, decreasing = TRUE)]
   for(hashtag in hashtags) {
-    if(toupper(hashtag) %in% toupper(query.c)) {
-      replacement <- paste0('<font color=', color.blue, '>', hashtag, '</font>')
+    if(toupper(paste0("#", hashtag)) %in% toupper(query.c)) {
+      replacement <- paste0('<span class="clickable"><font color=', color.blue, '>#&', hashtag, '</font></span>')
     } else {
-      replacement <- paste0('<span class="clickable"><font color=', "#ee7e1d", '>', hashtag, '</font></span>')
+      replacement <- paste0('<span class="clickable"><font color=', "#ee7e1d", '>#&', hashtag, '</font></span>')
     }
-    string <- str_replace_all(string, hashtag, replacement)
+    string <- str_replace_all(string, paste0("#", hashtag), replacement)
   }
+  string <- str_replace_all(string, "#&", "#")
   for(url in urls) {
     if(!is.na(url)) {
       replacement <- paste0('<span class="clickable"><font color=', "#ee1d8d", '>', url, '</font></span>')
