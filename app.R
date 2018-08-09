@@ -238,7 +238,10 @@ campfireApp(
     
     output$frame <- renderUI({
       if(!is.null(serverValues$url)) {
-        redirectScript <- paste0("window.open('", serverValues$url, "');")
+        redirectScript <- paste0("window = window.open('", serverValues$url, "');")
+        tags$script(HTML(redirectScript))
+      } else {
+        redirectScript <- paste0("window = window.open('", "http://idea.rpi.edu/", "');")
         tags$script(HTML(redirectScript))
       }
     })
