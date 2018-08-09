@@ -29,7 +29,8 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
                                colored.text <- ColorHashtags(data.subset$text[[y]],
                                                              query.c[!is.na(query.c)],
                                                              data.subset$hashtags[[y]],
-                                                             data.subset$urls_t.co[[y]])
+                                                             c(data.subset$urls_t.co[[y]], data.subset$ext_media_t.co[[y]]),
+                                                             data.subset$mentions_screen_name[[y]])
                                tags$div(style='padding: 0px;',
                                         tags$h3(paste0("@", data.subset$screen_name[[y]])), 
                                         tags$p(HTML(colored.text)),
@@ -43,7 +44,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
 }
 
 # Color the hashtags and urls in a string using HTML
-ColorHashtags <- function(string, query.c, hashtags, urls) {
+ColorHashtags <- function(string, query.c, hashtags, urls, mentions) {
   string.copy <- string
   hashtags <- hashtags[order(nchar(hashtags), hashtags, decreasing = TRUE)]
   for(hashtag in hashtags) {
@@ -55,6 +56,14 @@ ColorHashtags <- function(string, query.c, hashtags, urls) {
     string <- str_replace_all(string, paste0("#", hashtag), replacement)
   }
   string <- str_replace_all(string, "#&", "#")
+  for(mention in mentions) {
+    if(toupper(paste0("@", mention)) %in% toupper(query.c)) {
+      replacement <- paste0('<span class="clickable"><font color=', color.green, '>@', mention, '</font></span>')
+    } else {
+      replacement <- paste0('<span class="clickable"><font color=', "#ee7e1d", '>@', mention, '</font></span>')
+    }
+    string <- str_replace_all(string, paste0("@", mention), replacement)
+  }
   for(url in urls) {
     if(!is.na(url)) {
       replacement <- paste0('<span class="clickable"><font color=', "#ee1d8d", '>', url, '</font></span>')

@@ -107,7 +107,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     # Observe when text on the wall is clicked, and update query and wall/floor
     observeEvent(input$clicked_text, {
       UpdateValues()
-      if(substr(serverValues$clicked_text, 1, 1) == "#") {
+      if(substr(serverValues$clicked_text, 1, 1) == "#" ||  substr(serverValues$clicked_text, 1, 1) == "@") {
         if(toupper(serverValues$clicked_text) %in% toupper(serverValues$query.c)) {
           index <- which(toupper(serverValues$query.c) %in% toupper(serverValues$clicked_text))
           text <- serverValues$query.c[index]
@@ -122,7 +122,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
             serverValues$query.c[[index]] <- serverValues$clicked_text
             UpdateButton()
           }
-        } 
+        }
       } else {
         serverValues$url <- input$clicked_text
       }
