@@ -58,7 +58,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
         serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
         serverValues$edges <- GetEdges(serverValues$data, query.c.nna)
         serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
-        incProgress(1/3, detail = "Generating Graph Information", session = d)
+        incProgress(1/3, detail = "Generating Graph", session = d)
         serverValues$type <- "none"
       })
     })

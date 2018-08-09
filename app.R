@@ -40,35 +40,37 @@ campfireApp(
   
   wall = div(
     uiOutput("wall.ui"),
-    style = paste("background: ", color.back, "; scroll: hidden;",
-                 sep = "")
+    style = paste0("background: ", color.back, "; overflow: hidden;",
+                   "height: 665px")
   ),
   
   floor = div(
-    visNetworkOutput("network", width = "1920px", height = "1080px"),
+    visNetworkOutput("network", width = "1000px", height = "900px"),
     style = paste0("position: absolute; 
            top: 50%; left: 50%;
            margin-right: -50%; 
            transform: translate(-50%, -50%);
-           background: ", color.back, ";")
+           background: ", color.back,
+           "; height: 900px; overflow: hidden")
   ),
   
   datamonitor = div(fluidPage(
     fluidRow(
       column(12,
-             uiOutput("tweets.info")
+            uiOutput("tweets.info")
       )
     )),
     fluidRow(
       column(6,
-             plotOutput("top.users.bar.extern", height = "928px")
+             plotOutput("top.users.bar.extern", height = "920px")
              ),
       column(6,
-             plotOutput("top.hashtags.bar.extern", height = "928px")
+             plotOutput("top.hashtags.bar.extern", height = "920px")
              )
     ),
     style = paste0("background: ", color.back, ";
-                   overflow: hidden;")
+                   overflow: hidden;
+                   height: 1050px")
   ),
   
   urlmonitor = div(fluidPage(
@@ -95,7 +97,7 @@ campfireApp(
             Shiny.onInputChange('type', 'none');
           }") %>%
           visPhysics(stabilization = FALSE, enabled = FALSE) %>%
-          # visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
+          visInteraction(dragView = FALSE, zoomView = FALSE) %>%
           # Define behavior when clicking on nodes or edges
           visEvents(
                     click = "function(properties) {
@@ -144,21 +146,19 @@ campfireApp(
           tags$h1(style = paste0("color:", color.blue), node.name),
           tags$h2(style = paste0("color:", color.blue), paste("Size:", node.size))
         )
-      }
       # Stuff to print when edge is selected
       # Percent Commonality
-      else if(serverValues$type == "edge") {
+      } else if(serverValues$type == "edge") {
         edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
         query <- c(as.character(edge$to), as.character(edge$from))
         edge.name <- paste(query, collapse = " AND ")
         edge.size <- nrow(serverValues$data.subset)
         tags$div(
           tags$h1(style = paste0("color:", color.blue), edge.name),
-          tags$h2(style = paste0("color", color.blue), paste("Size:", edge.size))
+          tags$h2(style = paste0("color:", color.blue), paste("Size:", edge.size))
         )
-      }
       # Stuff to print when nothing is selected
-      else if(serverValues$type == "none" || is.null(serverValues$type)) {
+      } else if(serverValues$type == "none") {
         tags$div(
           tags$h1(style = paste0("color:", color.blue), "Twitter Network Explorer"),
           tags$h2(style = paste0("color:", color.blue), paste("Total number of tweets found:", nrow(serverValues$data)))  

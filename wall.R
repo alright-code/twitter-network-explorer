@@ -21,7 +21,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
                   fluidRow(
                     tags$h2(tags$span(class = "clickable", query.c[col.num]))
                   ),
-                  fluidRow(style = 'height: 780px;
+                  fluidRow(style = 'height: 600px;
                   overflow-y: auto;
                   overflow-x: hidden;',
                            if(nrow(data.subset) > 0) {
