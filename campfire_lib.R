@@ -43,15 +43,16 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     
     # Use the controller query to pull information to completely update the app
     UpdateButton <- reactive({
-      serverValues$type <- "load"
-      query.c.nna <- serverValues$query.c[!is.na(serverValues$query.c)]
-      serverValues$data <- GetData(query.c.nna,
-                                   serverValues$number.tweets,
-                                   FALSE, serverValues$search.type)
-      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
-      serverValues$edges <- GetEdges(serverValues$data, query.c.nna)
-      serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
-      serverValues$type <- "none"
+      withProgress(message = "Collecting Tweets", value = 0, {
+        query.c.nna <- serverValues$query.c[!is.na(serverValues$query.c)]
+        serverValues$data <- GetData(query.c.nna,
+                                     serverValues$number.tweets,
+                                     FALSE, serverValues$search.type)
+        serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
+        serverValues$edges <- GetEdges(serverValues$data, query.c.nna)
+        serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
+        serverValues$type <- "none"
+      })
     })
     
     # Get default data on startup

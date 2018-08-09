@@ -57,18 +57,19 @@ campfireApp(
   
   datamonitor = div(fluidPage(
     fluidRow(
-      column(6,
-             plotOutput("top.users.bar.extern", height = "1010px")
-             ),
-      column(6,
-             plotOutput("top.hashtags.bar.extern", height = "1010px")
-             )
-    ),
-    fluidRow(
       column(12,
              uiOutput("tweets.info")
-             )
+      )
     )),
+    fluidRow(
+      column(6,
+             style = paste0("background: ", color.back, ";"),
+             plotOutput("top.users.bar.extern", height = "986px")
+             ),
+      column(6,
+             plotOutput("top.hashtags.bar.extern", height = "986px")
+             )
+    ),
     style = paste0("background: ", color.back, ";")
   ),
   
@@ -142,9 +143,10 @@ campfireApp(
       if(serverValues$type == "node") {
         node.name <- serverValues$current_node_id
         node.size <- nrow(serverValues$data.subset)
-        str1 <- paste0("<font color=", color.white, "> Current Node: ", node.name, "</font>")
-        str2 <- paste0("<font color=", color.white, "> Node Size: ", node.size, "</font>")
-        HTML(paste(str1, str2, sep = '<br/>'))
+        tags$div(
+          tags$h1(style = paste0("color:", color.blue), node.name),
+          tags$h2(style = paste0("color:", color.blue), paste("Size:", node.size))
+        )
       }
       # Stuff to print when edge is selected
       # Percent Commonality
@@ -153,18 +155,14 @@ campfireApp(
         query <- c(as.character(edge$to), as.character(edge$from))
         edge.name <- paste(query, collapse = " AND ")
         edge.size <- nrow(serverValues$data.subset)
-        str1 <- paste0("<font color=", color.white, "> Current Edge: ", edge.name, "</font>")
-        str2 <- paste0("<font color=", color.white, "> Edge Size: ", edge.size, "</font>")
-        HTML(paste(str1, str2, sep = '<br/>'))
+        tags$div(
+          tags$h1(style = paste0("color:", color.blue), edge.name),
+          tags$h2(style = paste0("color", color.blue), paste("Size:", edge.size))
+        )
       }
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
-        str1 <- paste0("<font color=", color.white, "> Total number of tweets found: ", nrow(serverValues$data), "</font>")
-        #str2 <- a(serverValues$url, href=serverValues$url, target="_blank")
-        HTML(str1)
-      } else if(serverValues$type == "load") {
-        str1 <- paste0("<font color=", color.white, "> Loading New Tweets... ", "</font>")
-        HTML(str1)
+        tags$h1(style = paste0("color:", color.blue), paste("Total number of tweets found:", nrow(serverValues$data)))
       }
     })
     
@@ -195,11 +193,18 @@ campfireApp(
           coord_flip() + 
           labs(x = "Screen Name", y = "Tweets", title = "Top 10 Users") + 
           theme_dark() +
-          theme(plot.background = element_rect(fill = color.back),
+          theme(plot.background = element_rect(fill = color.back, color = NA),
                 axis.text = element_text(size = 20, colour = color.white),
                 text = element_text(size = 20, colour = color.blue))
+      # Blank plot if nothing selected
+      } else {
+        df <- data.frame()
+        ggplot(df) +
+          geom_blank() +
+          theme_dark() +
+          theme(panel.border = element_blank(),
+                plot.background = element_rect(fill = color.back, color = NA))
       }
-    
     })
     
     output$top.hashtags.bar.extern <- renderPlot({
@@ -217,9 +222,16 @@ campfireApp(
             labs(x = "Hashtag", y = "Frequency", title = "Top 10 Hashtags") +
             theme_dark() +
             theme(panel.border = element_blank(),
-                  plot.background = element_rect(fill = color.back),
+                  plot.background = element_rect(fill = color.back, color = NA),
                   axis.text = element_text(size = 20, colour = color.white),
                   text = element_text(size = 20, colour = color.blue))
+      } else {
+        df <- data.frame()
+        ggplot(df) +
+          geom_blank() +
+          theme_dark() +
+          theme(panel.border = element_blank(),
+                plot.background = element_rect(fill = color.back, color = NA))
       }
       
     })
