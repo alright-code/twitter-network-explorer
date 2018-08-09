@@ -19,7 +19,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
   column(width = 1,
          tags$div(includeCSS("wall.css"),
                   fluidRow(
-                    tags$h2(query.c[col.num])
+                    tags$h2(tags$span(class = "clickable", query.c[col.num]))
                   ),
                   fluidRow(style = 'height: 780px;
                   overflow-y: auto;
@@ -32,7 +32,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
                                                              c(data.subset$urls_t.co[[y]], data.subset$ext_media_t.co[[y]]),
                                                              data.subset$mentions_screen_name[[y]])
                                tags$div(style='padding: 0px;',
-                                        tags$h3(paste0("@", data.subset$screen_name[[y]])), 
+                                        tags$h3(tags$span(class = "clickable", paste0("@", data.subset$screen_name[[y]]))),
                                         tags$p(HTML(colored.text)),
                                         tags$p(HTML(paste("&#x1F499", data.subset$favorite_count[[y]], "&#x1F504", data.subset$retweet_count[[y]])))
                                )
@@ -49,24 +49,24 @@ ColorHashtags <- function(string, query.c, hashtags, urls, mentions) {
   hashtags <- hashtags[order(nchar(hashtags), hashtags, decreasing = TRUE)]
   for(hashtag in hashtags) {
     if(toupper(paste0("#", hashtag)) %in% toupper(query.c)) {
-      replacement <- paste0('<span class="clickable"><font color=', color.blue, '>#&', hashtag, '</font></span>')
+      replacement <- paste0('<span class="clickable included">', paste0("#&", hashtag), '</span>')
     } else {
-      replacement <- paste0('<span class="clickable"><font color=', "#ee7e1d", '>#&', hashtag, '</font></span>')
+      replacement <- paste0('<span class="clickable notincluded">', paste0("#&", hashtag), '</span>')
     }
     string <- str_replace_all(string, paste0("#", hashtag), replacement)
   }
   string <- str_replace_all(string, "#&", "#")
   for(mention in mentions) {
     if(toupper(paste0("@", mention)) %in% toupper(query.c)) {
-      replacement <- paste0('<span class="clickable"><font color=', color.green, '>@', mention, '</font></span>')
+      replacement <- paste0('<span class="clickable mentionincluded">', paste0("@", mention), '</span>')
     } else {
-      replacement <- paste0('<span class="clickable"><font color=', "#ee7e1d", '>@', mention, '</font></span>')
+      replacement <- paste0('<span class="clickable notincluded">', paste0("@", mention), '</span>')
     }
     string <- str_replace_all(string, paste0("@", mention), replacement)
   }
   for(url in urls) {
     if(!is.na(url)) {
-      replacement <- paste0('<span class="clickable"><font color=', "#ee1d8d", '>', url, '</font></span>')
+      replacement <- paste0('<span class="clickable url">', url, '</span>')
       string <- str_replace_all(string, url, replacement)
     }
   }

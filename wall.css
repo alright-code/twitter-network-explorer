@@ -15,3 +15,19 @@ h3 {
   color: #1dee7e;
   display: inline-block;
 }
+
+.included {
+  color: #1D8DEE;
+}
+
+.notincluded {
+  color: #ee7e1d;
+}
+
+.mentionincluded {
+  color: #1dee7e;
+}
+
+.url {
+  color:#ee1d8d;
+}
