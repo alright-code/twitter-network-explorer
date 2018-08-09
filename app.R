@@ -6,9 +6,6 @@ library(shinyjs)
 library(ggplot2)
 library(useful)
 
-floor.domain <- NULL
-monitor.domain <- NULL
-
 ###Colors###
 color.green <- "#1dee7e"
 color.pink <- "#ee1d8d"
@@ -64,14 +61,14 @@ campfireApp(
     )),
     fluidRow(
       column(6,
-             style = paste0("background: ", color.back, ";"),
-             plotOutput("top.users.bar.extern", height = "986px")
+             plotOutput("top.users.bar.extern", height = "930px")
              ),
       column(6,
-             plotOutput("top.hashtags.bar.extern", height = "986px")
+             plotOutput("top.hashtags.bar.extern", height = "930px")
              )
     ),
-    style = paste0("background: ", color.back, ";")
+    style = paste0("background: ", color.back, ";
+                   overflow: hidden;")
   ),
   
   urlmonitor = div(fluidPage(
@@ -79,9 +76,8 @@ campfireApp(
   )),
   
   serverFunct = function(serverValues, output, session) {
-    
+
     output$network <- renderVisNetwork({
-      floor.domain <<- getDefaultReactiveDomain()
       if(!is.null(serverValues$nodes)) {
         visNetwork(serverValues$nodes, serverValues$edges) %>%
           visEdges(scaling = list("min" = 0), smooth = list("enabled" = TRUE)) %>%
@@ -163,7 +159,10 @@ campfireApp(
       }
       # Stuff to print when nothing is selected
       else if(serverValues$type == "none") {
-        tags$h1(style = paste0("color:", color.blue), paste("Total number of tweets found:", nrow(serverValues$data)))
+        tags$div(
+          tags$h1(style = paste0("color:", color.blue), "Twitter Network Explorer"),
+          tags$h2(style = paste0("color:", color.blue), paste("Total number of tweets found:", nrow(serverValues$data)))  
+        )
       }
     })
     
@@ -184,7 +183,7 @@ campfireApp(
     })
     
     output$top.users.bar.extern <- renderPlot({
-      monitor.domain <<- getDefaultReactiveDomain()
+      serverValues$monitor.domain <- getDefaultReactiveDomain()
       if(!is.null(serverValues$data.subset)) {
         serverValues$data.subset %>% 
           count(screen_name) %>% 
@@ -250,6 +249,11 @@ campfireApp(
     
     observeEvent(serverValues$query.c, {
       updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
+    })
+    
+    observeEvent(serverValues$remove, {
+      visNetworkProxy("network") %>%
+        visRemoveNodes(serverValues$remove)
     })
     
   }

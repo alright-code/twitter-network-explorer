@@ -43,12 +43,13 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     
     # Use the controller query to pull information to completely update the app
     UpdateButton <- reactive({
-      if(is.null(monitor.domain)) {
+      if(is.null(serverValues$monitor.domain)) {
         d <- getDefaultReactiveDomain()
       } else {
-        d <- monitor.domain
+        d <- serverValues$monitor.domain
       }
-      withProgress(message = "Collecting Tweets", value = 0, session = d, {
+      withProgress(message = "Reloading...", value = 0, session = d, {
+        incProgress(0, detail = "Getting Tweets", session = d)
         query.c.nna <- serverValues$query.c[!is.na(serverValues$query.c)]
         serverValues$data <- GetData(query.c.nna,
                                      serverValues$number.tweets,
@@ -107,7 +108,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     observeEvent(input$delete_node, {
       UpdateValues()
       index <- which(serverValues$query.c %in% serverValues$delete_node)
-      serverValues$query.c[node.index] <- NA
+      serverValues$query.c[index] <- NA
       serverValues$data.subset <- NULL
       serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
     })
@@ -119,8 +120,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
         if(toupper(serverValues$clicked_text) %in% toupper(serverValues$query.c)) {
           index <- which(toupper(serverValues$query.c) %in% toupper(serverValues$clicked_text))
           text <- serverValues$query.c[index]
-          visNetworkProxy("network", session = floor.domain) %>%
-            visRemoveNodes(text)
+          serverValues$remove <- text
           serverValues$query.c[index] <- NA
           serverValues$data.subset <- NULL
           serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
@@ -153,7 +153,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       tmp.index <- which(serverValues$query.c %in% serverValues$current_node_id)
       tmp.col <- serverValues$col.list[[new.index]]
       # Change the position of the node moved onto
-      visNetworkProxy("network", session = floor.domain) %>%
+      visNetworkProxy("network") %>%
         visMoveNode(tmp.node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
       serverValues$query.c[new.index] <- serverValues$current_node_id
       serverValues$query.c[tmp.index] <- tmp.node
@@ -288,26 +288,26 @@ campfireUI = function(controller, wall, floor, datamonitor, urlmonitor) {
         HTML('<h2><a href="?Controller">Controller</a></h2>'),
         HTML('<h2><a href="?Wall">Wall</a></h2>'),
         HTML('<h2><a href="?Floor">Floor</a></h2>'),
-        HTML('<h2><a href="?DataMonitor">Data Monitor</a></h2>'),
-        HTML('<h2><a href="?Monitor">URL Monitor</a></h2>'),
-        style='position: absolute; 
+        HTML('<h2><a href="?Monitor">External Monitor</a></h2>'),
+        HTML('<h2><a href="?URLMonitor">URL Monitor</a></h2>'),
+        style = 'position: absolute; 
         top: 50%; left: 50%; 
         margin-right: -50%; 
         transform: translate(-50%, -50%)'
     ),
-    div(class="Controller Window",
+    div(class = "Controller Window",
         controller
     ),
-    div(class="Wall Window",
+    div(class = "Wall Window",
         wall 
     ),
-    div(class="Floor Window",
+    div(class = "Floor Window",
         floor
     ),
-    div(class="DataMonitor Window",
+    div(class = "Monitor Window",
         datamonitor
     ),
-    div(class="Monitor Window",
+    div(class = "URLMonitor Window",
         urlmonitor
     )
     
