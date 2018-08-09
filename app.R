@@ -61,10 +61,10 @@ campfireApp(
     )),
     fluidRow(
       column(6,
-             plotOutput("top.users.bar.extern", height = "930px")
+             plotOutput("top.users.bar.extern", height = "928px")
              ),
       column(6,
-             plotOutput("top.hashtags.bar.extern", height = "930px")
+             plotOutput("top.hashtags.bar.extern", height = "928px")
              )
     ),
     style = paste0("background: ", color.back, ";
@@ -98,7 +98,7 @@ campfireApp(
           # visOptions(highlightNearest = list(enabled = TRUE, hover = TRUE)) %>%
           # Define behavior when clicking on nodes or edges
           visEvents(
-                    click = "function() {
+                    click = "function(properties) {
                               if(this.getSelectedNodes().length == 1) {
                                 Shiny.onInputChange('current_node_id', this.getSelectedNodes()[0]);
                                 Shiny.onInputChange('type', 'node');
@@ -158,7 +158,7 @@ campfireApp(
         )
       }
       # Stuff to print when nothing is selected
-      else if(serverValues$type == "none") {
+      else if(serverValues$type == "none" || is.null(serverValues$type)) {
         tags$div(
           tags$h1(style = paste0("color:", color.blue), "Twitter Network Explorer"),
           tags$h2(style = paste0("color:", color.blue), paste("Total number of tweets found:", nrow(serverValues$data)))  
