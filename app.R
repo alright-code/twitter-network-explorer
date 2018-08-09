@@ -7,6 +7,7 @@ library(ggplot2)
 library(useful)
 
 floor.domain <- NULL
+monitor.domain <- NULL
 
 ###Colors###
 color.green <- "#1dee7e"
@@ -183,6 +184,7 @@ campfireApp(
     })
     
     output$top.users.bar.extern <- renderPlot({
+      monitor.domain <<- getDefaultReactiveDomain()
       if(!is.null(serverValues$data.subset)) {
         serverValues$data.subset %>% 
           count(screen_name) %>% 
