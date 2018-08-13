@@ -47,6 +47,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
 ColorHashtags <- function(string, query.c, hashtags, urls, mentions) {
   string.copy <- string
   hashtags <- hashtags[order(nchar(hashtags), hashtags, decreasing = TRUE)]
+  mentions <- mentions[order(nchar(mentions), mentions, decreasing = TRUE)]
   for(hashtag in hashtags) {
     if(toupper(paste0("#", hashtag)) %in% toupper(query.c)) {
       replacement <- paste0('<span class="clickable included">', paste0("#&", hashtag), '</span>')
@@ -58,12 +59,13 @@ ColorHashtags <- function(string, query.c, hashtags, urls, mentions) {
   string <- str_replace_all(string, "#&", "#")
   for(mention in mentions) {
     if(toupper(paste0("@", mention)) %in% toupper(query.c)) {
-      replacement <- paste0('<span class="clickable mentionincluded">', paste0("@", mention), '</span>')
+      replacement <- paste0('<span class="clickable mentionincluded">', paste0("@&", mention), '</span>')
     } else {
-      replacement <- paste0('<span class="clickable notincluded">', paste0("@", mention), '</span>')
+      replacement <- paste0('<span class="clickable notincluded">', paste0("@&", mention), '</span>')
     }
     string <- str_replace_all(string, paste0("@", mention), replacement)
   }
+  string <- str_replace_all(string, "@&", "@")
   for(url in urls) {
     if(!is.na(url)) {
       replacement <- paste0('<span class="clickable url">', url, '</span>')

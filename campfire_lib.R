@@ -43,6 +43,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     
     # Use the controller query to pull information to completely update the app
     UpdateButton <- reactive({
+      serverValues$data.subset <- NULL
       if(is.null(serverValues$monitor.domain)) {
         d <- getDefaultReactiveDomain()
       } else {
