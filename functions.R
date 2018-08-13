@@ -30,12 +30,16 @@ GetDataSubset <- function(data, query.c) {
 # Input: data dataframe, query vector
 # Output: Data frame with id and value columns
 GetNodes <- function(data, query.c) {
-  nodes <- data.frame(id = query.c[!is.na(query.c)],
-                      label = query.c[!is.na(query.c)],
-                      color = color.blue,
-                      font = "10px arial #fd7e14")
-  nodes$value <- GetNodesValue(data, nodes)
-  nodes <- GetCoords(nodes, query.c)
+  if(length(query.c[!is.na(query.c)]) != 0) {
+    nodes <- data.frame(id = query.c[!is.na(query.c)],
+                        label = query.c[!is.na(query.c)],
+                        color = color.blue,
+                        font = "10px arial #fd7e14")
+    nodes$value <- GetNodesValue(data, nodes)
+    nodes <- GetCoords(nodes, query.c)
+  } else {
+    nodes <- NULL
+  }
   return(nodes)
 }
 
@@ -75,10 +79,14 @@ GetCoords <- function(nodes, query.c) {
 # Output: Data frame with to and from columns and attribute columns
 GetEdges <- function(data, query.c) {
   query.c <- query.c[!is.na(query.c)]
-  edges <- GetToFrom(data, query.c)
-  if(!is.null(edges)) {
-    edges <- GetEdgesIndices(edges)
-    edges <- GetEdgesColors(edges)
+  if(nrow(data) != 0) {
+    edges <- GetToFrom(data, query.c)
+    if(!is.null(edges)) {
+      edges <- GetEdgesIndices(edges)
+      edges <- GetEdgesColors(edges)
+    }
+  } else {
+    edges <- NULL
   }
   return(edges)
 }
@@ -110,7 +118,9 @@ GetToFrom <- function(data, query.c) {
 # Note: Indices are used to track what edge is selected in shiny
 GetEdgesIndices <- function(edges) {
   edges.rows <- nrow(edges)
-  edges$index <- 1:edges.rows
+  if(edges.rows != 0) {
+    edges$index <- 1:edges.rows
+  }
   return(edges)
 }
 

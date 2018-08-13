@@ -119,10 +119,8 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
         if(toupper(serverValues$clicked_text) %in% toupper(serverValues$query.c)) {
           index <- which(toupper(serverValues$query.c) %in% toupper(serverValues$clicked_text))
           text <- serverValues$query.c[index]
-          serverValues$remove <- text
-          serverValues$query.c[index] <- NA
-          serverValues$data.subset <- NULL
-          serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
+          serverValues$select <- text
+          serverValues$data.subset <- GetDataSubset(serverValues$data, text)
         } else {
           index <- which(is.na(serverValues$query.c))[1]
           if(!is.na(index)) {

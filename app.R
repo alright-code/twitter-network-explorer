@@ -266,9 +266,9 @@ campfireApp(
       updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
     })
     
-    observeEvent(serverValues$remove, {
+    observeEvent(serverValues$select, {
       visNetworkProxy("network") %>%
-        visRemoveNodes(serverValues$remove)
+        visSelectNodes(serverValues$select)
     })
     
   }
