@@ -31,7 +31,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
                                                              data.subset$hashtags[[y]],
                                                              c(data.subset$urls_t.co[[y]], data.subset$ext_media_t.co[[y]]),
                                                              data.subset$mentions_screen_name[[y]])
-                               tags$div(style='padding: 0px;',
+                               tags$div(style = 'padding: 0px;',
                                         tags$h3(tags$span(class = "clickable", paste0("@", data.subset$screen_name[[y]]))),
                                         tags$p(HTML(colored.text)),
                                         tags$p(HTML(paste("&#x1F499", data.subset$favorite_count[[y]], "&#x1F504", data.subset$retweet_count[[y]])))
@@ -47,6 +47,7 @@ UpdateColumn <- function(data.subset, query.c, col.num) {
 ColorHashtags <- function(string, query.c, hashtags, urls, mentions) {
   string.copy <- string
   hashtags <- hashtags[order(nchar(hashtags), hashtags, decreasing = TRUE)]
+  mentions <- mentions[order(nchar(mentions), mentions, decreasing = TRUE)]
   for(hashtag in hashtags) {
     if(toupper(paste0("#", hashtag)) %in% toupper(query.c)) {
       replacement <- paste0('<span class="clickable included">', paste0("#&", hashtag), '</span>')
@@ -58,12 +59,13 @@ ColorHashtags <- function(string, query.c, hashtags, urls, mentions) {
   string <- str_replace_all(string, "#&", "#")
   for(mention in mentions) {
     if(toupper(paste0("@", mention)) %in% toupper(query.c)) {
-      replacement <- paste0('<span class="clickable mentionincluded">', paste0("@", mention), '</span>')
+      replacement <- paste0('<span class="clickable mentionincluded">', paste0("@&", mention), '</span>')
     } else {
-      replacement <- paste0('<span class="clickable notincluded">', paste0("@", mention), '</span>')
+      replacement <- paste0('<span class="clickable notincluded">', paste0("@&", mention), '</span>')
     }
     string <- str_replace_all(string, paste0("@", mention), replacement)
   }
+  string <- str_replace_all(string, "@&", "@")
   for(url in urls) {
     if(!is.na(url)) {
       replacement <- paste0('<span class="clickable url">', url, '</span>')

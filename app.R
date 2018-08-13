@@ -170,13 +170,13 @@ campfireApp(
     
     output$wall.ui <- renderUI({
       fluidPage(
-        fluidRow(
-          tags$script(HTML(
-            "$(document).on('click', '.clickable', function () {
+        tags$script(HTML(
+          "$(document).on('click', '.clickable', function () {
               var text =  $(this).text();
               Shiny.onInputChange('clicked_text', text);
             });"
-          )),
+        )),
+        fluidRow(
           lapply(1:12, function(col.num) {
             serverValues$col.list[[col.num]] 
           })
@@ -202,11 +202,12 @@ campfireApp(
       } else {
         serverValues$data %>%
           count(query) %>%
-          ggplot(aes("", n, fill = query)) +
+          ggplot(aes("", n, fill = reorder(query, n))) +
           geom_bar(stat = "identity") +
           theme_dark() +
           scale_fill_manual(values = colors) +
           labs(x = "", y = "Number of Tweets", title = "Tweet Composition") +
+          guides(fill = guide_legend(title = "Query")) +
           theme(panel.border = element_blank(),
                 plot.background = element_rect(fill = "#151E29", color = NA),
                 axis.text = element_text(size = 20, colour = "#f0f0f0"),
