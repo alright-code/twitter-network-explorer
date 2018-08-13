@@ -119,8 +119,9 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
         if(toupper(serverValues$clicked_text) %in% toupper(serverValues$query.c)) {
           index <- which(toupper(serverValues$query.c) %in% toupper(serverValues$clicked_text))
           text <- serverValues$query.c[index]
-          serverValues$select <- text
+          serverValues$current_node_id <- text
           serverValues$data.subset <- GetDataSubset(serverValues$data, text)
+          serverValues$type <- "node"
         } else {
           index <- which(is.na(serverValues$query.c))[1]
           if(!is.na(index)) {

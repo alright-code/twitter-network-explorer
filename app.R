@@ -199,7 +199,6 @@ campfireApp(
             theme(plot.background = element_rect(fill = color.back, color = NA),
                   axis.text = element_text(size = 20, colour = color.white),
                   text = element_text(size = 20, colour = color.blue))
-      # Blank plot if nothing selected
       } else {
         serverValues$data %>%
           count(query) %>%
@@ -219,6 +218,7 @@ campfireApp(
     output$top.hashtags.bar.extern <- renderPlot({
       if(!is.null(serverValues$data.subset)) {
         serverValues$data.subset %>%
+          filter(!is.na(hashtags)) %>%
           unnest(hashtags) %>%
           mutate(hashtags = toupper(hashtags)) %>%
           filter(!(paste("#", hashtags, sep = "") %in% toupper(unique(serverValues$data$query)))) %>%
@@ -266,9 +266,9 @@ campfireApp(
       updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
     })
     
-    observeEvent(serverValues$select, {
+    observeEvent(serverValues$current_node_id, {
       visNetworkProxy("network") %>%
-        visSelectNodes(serverValues$select)
+        visSelectNodes(serverValues$current_node_id)
     })
     
   }
