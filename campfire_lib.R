@@ -50,13 +50,12 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       }
       withProgress(message = "Reloading...", value = 0, session = d, {
         incProgress(0, detail = "Getting Tweets", session = d)
-        query.c.nna <- serverValues$query.c[!is.na(serverValues$query.c)]
         serverValues$data <- GetData(query.c.nna,
                                      serverValues$number.tweets,
                                      FALSE, serverValues$search.type)
         incProgress(1/3, detail = "Generating Wall", session = d)
         serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
-        serverValues$edges <- GetEdges(serverValues$data, query.c.nna)
+        serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
         serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
         incProgress(1/3, detail = "Generating Graph", session = d)
         serverValues$type <- "none"
@@ -160,11 +159,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$col.list[[new.index]] <- serverValues$col.list[[tmp.index]]
       serverValues$col.list[[tmp.index]] <- tmp.col
     })
-    
-    # observeEvent(input$query.c, {
-    #   print("ok")
-    #   updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
-    # })
     
     # Observe all wall buttons, then update query and wall/floor
     observeEvent({

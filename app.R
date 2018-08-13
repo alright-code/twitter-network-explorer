@@ -14,6 +14,8 @@ color.white <- "#f0f0f0"
 color.blue <- "#1D8DEE"
 color.back <- "#151E29"
 color.offback <- "#1B2737"
+colors <- c("#1D8DEE", "#1dee7e", "#ee7e1d", "#ee1d8d", "#64B0F3", "#64F3A6", "#F3A664", "#B10D65", "#0D65B1", "#0DB159", "#B1590D", "#F364B0")
+
 
 source("functions.R")
 source("wall.R")
@@ -190,21 +192,27 @@ campfireApp(
           arrange(desc(n)) %>%
           slice(1:10) %>%
           ggplot(aes(reorder(screen_name, n), n)) + 
-          geom_col(fill = color.blue, color = color.blue) + 
-          coord_flip() + 
-          labs(x = "Screen Name", y = "Tweets", title = "Top 10 Users") + 
-          theme_dark() +
-          theme(plot.background = element_rect(fill = color.back, color = NA),
-                axis.text = element_text(size = 20, colour = color.white),
-                text = element_text(size = 20, colour = color.blue))
+            geom_col(fill = color.blue, color = color.blue) + 
+            coord_flip() + 
+            labs(x = "Screen Name", y = "Tweets", title = "Top 10 Users") + 
+            theme_dark() +
+            theme(plot.background = element_rect(fill = color.back, color = NA),
+                  axis.text = element_text(size = 20, colour = color.white),
+                  text = element_text(size = 20, colour = color.blue))
       # Blank plot if nothing selected
       } else {
-        df <- data.frame()
-        ggplot(df) +
-          geom_blank() +
+        serverValues$data %>%
+          count(query) %>%
+          ggplot(aes("", n, fill = query)) +
+          geom_bar(stat = "identity") +
           theme_dark() +
+          scale_fill_manual(values = colors) +
+          labs(x = "", y = "Number of Tweets", title = "Tweet Composition") +
           theme(panel.border = element_blank(),
-                plot.background = element_rect(fill = color.back, color = NA))
+                plot.background = element_rect(fill = "#151E29", color = NA),
+                axis.text = element_text(size = 20, colour = "#f0f0f0"),
+                text = element_text(size = 20, colour = "#1D8DEE"),
+                legend.background = element_rect(fill = "#151E29", color = NA))
       }
     })
     

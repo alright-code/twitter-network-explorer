@@ -4,6 +4,7 @@
 # Search twitter for n.tweets tweets matching the query and whether to include rts,
 #   return a data frame of those tweets
 GetData <- function(query.c, num.tweets, include.rts, type) {
+  query.c <- query.c[!is.na(query.c)]
   data <- search_tweets2(query.c, n = num.tweets, include_rts = include.rts,
                         token = token, type = type, lang = "en", verbose = TRUE)
   return(data)
@@ -73,6 +74,7 @@ GetCoords <- function(nodes, query.c) {
 # Input: data dataframe, query vector
 # Output: Data frame with to and from columns and attribute columns
 GetEdges <- function(data, query.c) {
+  query.c <- query.c[!is.na(query.c)]
   edges <- GetToFrom(data, query.c)
   if(!is.null(edges)) {
     edges <- GetEdgesIndices(edges)
