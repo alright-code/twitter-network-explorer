@@ -50,7 +50,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       }
       withProgress(message = "Reloading...", value = 0, session = d, {
         incProgress(0, detail = "Getting Tweets", session = d)
-        serverValues$data <- GetData(query.c.nna,
+        serverValues$data <- GetData(serverValues$query.c,
                                      serverValues$number.tweets,
                                      FALSE, serverValues$search.type)
         incProgress(1/3, detail = "Generating Wall", session = d)

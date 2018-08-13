@@ -235,12 +235,19 @@ campfireApp(
                   axis.text = element_text(size = 20, colour = color.white),
                   text = element_text(size = 20, colour = color.blue))
       } else {
-        df <- data.frame()
-        ggplot(df) +
-          geom_blank() +
-          theme_dark() +
-          theme(panel.border = element_blank(),
-                plot.background = element_rect(fill = color.back, color = NA))
+        serverValues$data %>% 
+          distinct(screen_name, source) %>%
+          count(source) %>% 
+          filter(n >= 5) %>%
+          ggplot(aes(reorder(source, n), n)) + 
+            geom_col(fill = color.blue, color = color.blue) +
+            coord_flip() + 
+            labs(x = "Source", y = "Tweets", title = "Tweets by source", subtitle = "sources with >=5 tweets") +
+            theme_dark() +
+            theme(panel.border = element_blank(),
+                plot.background = element_rect(fill = color.back, color = NA),
+                axis.text = element_text(size = 20, colour = color.white),
+                text = element_text(size = 20, colour = color.blue))
       }
       
     })
