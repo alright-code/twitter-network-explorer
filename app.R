@@ -202,17 +202,15 @@ campfireApp(
       } else {
         serverValues$data %>%
           count(query) %>%
-          ggplot(aes("", n, fill = reorder(query, n))) +
-          geom_bar(stat = "identity") +
-          theme_dark() +
-          scale_fill_manual(values = colors) +
-          labs(x = "", y = "Number of Tweets", title = "Tweet Composition") +
-          guides(fill = guide_legend(title = "Query")) +
-          theme(panel.border = element_blank(),
+          ggplot(aes(reorder(query, n), n)) +
+            geom_col(fill = color.blue, color = color.blue) +
+            coord_flip() +
+            labs(x = "Query", y = "Number of Tweets", title = "Tweet Composition") +
+            theme_dark() +
+            theme(panel.border = element_blank(),
                 plot.background = element_rect(fill = "#151E29", color = NA),
                 axis.text = element_text(size = 20, colour = "#f0f0f0"),
-                text = element_text(size = 20, colour = "#1D8DEE"),
-                legend.background = element_rect(fill = "#151E29", color = NA))
+                text = element_text(size = 20, colour = "#1D8DEE"))
       }
     })
     

@@ -110,6 +110,8 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       index <- which(serverValues$query.c %in% serverValues$delete_node)
       serverValues$query.c[index] <- NA
       serverValues$data.subset <- NULL
+      serverValues$data <- serverValues$data %>%
+                             filter(query != serverValues$delete_node)
       serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
     })
     
