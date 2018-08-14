@@ -13,18 +13,10 @@ health.query <- c("#HealthTech", "#Healthcare", "#DataScience", "#Bigdata",
 
 default.query.string <- paste(default.query.c, collapse = " ")
 
-token <- create_token(
-  app = "Campfire_Twitter",
-  consumer_key = "YysJwhUvIYyEZsOqLtE5mlsHv",
-  consumer_secret = "EC997cOOlCzp4qedKVaYCB2zs8HnPyKEhIqLV2PNKCirXartcE",
-  
-  
-  FALSE
-)
+consumer_key <- "YysJwhUvIYyEZsOqLtE5mlsHv"
+consumer_secret <- "EC997cOOlCzp4qedKVaYCB2zs8HnPyKEhIqLV2PNKCirXartcE"
 
-# access_token = "3038115538-sDa3AOf3UwkvWM9g9REitniqw9L8EZxJFza8qj4",
-# access_secret = "qRZja6LSKA2rm7mVBpbNGQKKmBlCKbsXmbL3TmmvEoPp2",
-
+token <- get_bearer_token(consumer_key, consumer_secret)
 
 # MW Shiny ----------------------------------------------------------------
 
