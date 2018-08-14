@@ -258,7 +258,7 @@ campfireApp(
         redirectScript <- paste0("window = window.open('", serverValues$url, "');")
         tags$script(HTML(redirectScript))
       } else {
-        redirectScript <- paste0("window = window.open('", "http://idea.rpi.edu/", "');")
+        redirectScript <- paste0("window = window.open('", "http://orion.tw.rpi.edu/~olyerickson/RenIDEA_black_invert.jpg", "');")
         tags$script(HTML(redirectScript))
       }
     })
