@@ -266,9 +266,11 @@ campfireApp(
     })
     
     observeEvent(serverValues$query.c, {
-      updateTextInput(session, "query", 
-                      value = paste0(serverValues$query.c[!is.na(serverValues$query.c)],
-                                     collapse = " "))
+      text <- serverValues$query.c[!is.na(serverValues$query.c)]
+      for(i in which(grepl("\\s", text))) {
+        text[i] <- paste0('"', text[i], '"')
+      }
+      updateTextInput(session, "query", value = paste0(text, collapse = " "))
     })
     
     observeEvent(serverValues$current_node_id, {

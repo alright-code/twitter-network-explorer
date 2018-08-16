@@ -80,9 +80,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       UpdateValues()
       text <- read.table(serverValues$file$datapath, header = FALSE,
                          comment.char = "", stringsAsFactors = FALSE)$V1
-      for(i in which(grepl("\\s", text))) {
-        text[i] <- paste0('"', text[i], '"')
-      }
       serverValues$query.c <- text
     })
     
@@ -159,12 +156,14 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       tmp.index <- which(serverValues$query.c %in% serverValues$current_node_id)
       tmp.col <- serverValues$col.list[[new.index]]
       # Change the position of the node moved onto
-      visNetworkProxy("network") %>%
-        visMoveNode(tmp.node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
-      serverValues$query.c[new.index] <- serverValues$current_node_id
-      serverValues$query.c[tmp.index] <- tmp.node
-      serverValues$col.list[[new.index]] <- serverValues$col.list[[tmp.index]]
-      serverValues$col.list[[tmp.index]] <- tmp.col
+      if(tmp.index != new.index) {
+        visNetworkProxy("network") %>%
+          visMoveNode(tmp.node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
+        serverValues$query.c[new.index] <- serverValues$current_node_id
+        serverValues$query.c[tmp.index] <- tmp.node
+        serverValues$col.list[[new.index]] <- serverValues$col.list[[tmp.index]]
+        serverValues$col.list[[tmp.index]] <- tmp.col
+      }
     })
     
     # Observe all wall buttons, then update query and wall/floor
