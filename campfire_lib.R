@@ -76,6 +76,16 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       UpdateButton()
     })
     
+    observeEvent(input$file, {
+      UpdateValues()
+      text <- read.table(serverValues$file$datapath, header = FALSE,
+                         comment.char = "", stringsAsFactors = FALSE)$V1
+      for(i in which(grepl("\\s", text))) {
+        text[i] <- paste0('"', text[i], '"')
+      }
+      serverValues$query.c <- text
+    })
+    
     # Actions to be taken when edge or node selection is changed
     observeEvent({
       input$current_node_id
@@ -137,7 +147,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       UpdateValues()
       angle <- cart2pol(serverValues$end_position[[1]]$x, -serverValues$end_position[[1]]$y)$theta
       angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
-      angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[2:4])
+      angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[3:2], 2*pi)
       # Find the closest angle value to the newly calculated
       new.index <- which(abs(angles - angle) == min(abs(angles - angle)))
       # If angle is close to 2pi, set the index to 10

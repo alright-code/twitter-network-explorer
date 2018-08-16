@@ -2,9 +2,12 @@ library(shiny)
 library(visNetwork)
 library(rtweet)
 library(tidyverse)
-library(shinyjs)
 library(ggplot2)
 library(useful)
+
+#Explore Tweets
+#Expand Network
+#Build Network
 
 ###Colors###
 color.green <- "#1dee7e"
@@ -25,7 +28,8 @@ campfireApp(
   
   controller = div(
     h1("Controller"),
-    textAreaInput("query", "Hashtags", default.query.string, height = '200px'),
+    textAreaInput("query", "Search Query", default.query.string, height = '200px'),
+    fileInput("file", "Upload File", accept = c("text/plain")),
     sliderInput(inputId = "number.tweets",
                 label = "Choose number of tweets for the search:",
                 min = 50, max = 1000, value = 50),
@@ -262,7 +266,9 @@ campfireApp(
     })
     
     observeEvent(serverValues$query.c, {
-      updateTextInput(session, "query", value = paste(serverValues$query.c[!is.na(serverValues$query.c)], collapse = " "))
+      updateTextInput(session, "query", 
+                      value = paste0(serverValues$query.c[!is.na(serverValues$query.c)],
+                                     collapse = " "))
     })
     
     observeEvent(serverValues$current_node_id, {

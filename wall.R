@@ -5,7 +5,7 @@ UpdateWall <- function(data, query.c) {
   col.list <- lapply(1:12, function(col.num) {
     if(is.na(query.c[col.num])) {
       column(width = 1,
-             textInput(paste0("text.column.", col.num), col.num),
+             textInput(paste0("text.column.", col.num)),
              actionButton(paste0("button.column.", col.num), "Submit"))
     } else {
       data.subset <- GetDataSubset(data, query.c[col.num])
