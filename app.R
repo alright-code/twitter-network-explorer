@@ -5,35 +5,45 @@ library(tidyverse)
 library(ggplot2)
 library(useful)
 
-#Explore Tweets
-#Expand Network
-#Build Network
-
-###Colors###
-color.green <- "#1dee7e"
-color.pink <- "#ee1d8d"
-color.orange <- "#ee7e1d"
-color.white <- "#f0f0f0"
-color.blue <- "#1D8DEE"
-color.back <- "#151E29"
-color.offback <- "#1B2737"
-colors <- c("#1D8DEE", "#1dee7e", "#ee7e1d", "#ee1d8d", "#64B0F3", "#64F3A6", "#F3A664", "#B10D65", "#0D65B1", "#0DB159", "#B1590D", "#F364B0")
+# Do network changes in R over javascript
+# Minimize Reactive Variables
+# 
 
 source("app-only-auth-twitter.R")
-source("functions.R")
-source("wall.R")
 source("campfire_lib.R")
+source("data.R")
+source("floor.R")
+source("wall.R")
+source("external-monitor.R")
+source("utilities.R")
+source("token_info.R")
+
+# Default search query for app startup
+default_query <- paste(c("#DataScience",
+                         "#DataAnalytics",
+                         "#DataAnalysis",
+                         "#MachineLearning",
+                         "#DeepLearning",
+                         "#BigData",
+                         "#data",
+                         "#Programming",
+                         "#Math",
+                         "#rstats"),
+                       collapse = " ")
+
+# Set twitter token, consumer_key and consumer_secret stored in token_info.R file
+token <- get_bearer_token(consumer_key, consumer_secret)
 
 campfireApp(
   
   controller = div(
     h1("Controller"),
-    textAreaInput("query", "Search Query", default.query.string, height = '200px'),
+    textAreaInput("query", "Search Query", default_query, height = '200px'),
     fileInput("file", "Upload File", accept = c("text/plain")),
-    sliderInput(inputId = "number.tweets",
+    sliderInput(inputId = "number_tweets",
                 label = "Choose number of tweets for the search:",
                 min = 50, max = 1000, value = 50),
-    selectInput(inputId = "search.type",
+    selectInput(inputId = "search_type",
                 label = "Search Type:",
                 choices = list("recent", "mixed", "popular")),
     actionButton(inputId = "update",
@@ -147,7 +157,7 @@ campfireApp(
       # Stuff to print when node is selected
       if(serverValues$type == "node") {
         node.name <- serverValues$current_node_id
-        node.size <- nrow(serverValues$data.subset)
+        node.size <- nrow(serverValues$data_subset)
         tags$div(
           tags$h1(style = paste0("color:", color.blue), node.name),
           tags$h2(style = paste0("color:", color.blue), paste("Size:", node.size))
@@ -158,7 +168,7 @@ campfireApp(
         edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
         query <- c(as.character(edge$to), as.character(edge$from))
         edge.name <- paste(query, collapse = " AND ")
-        edge.size <- nrow(serverValues$data.subset)
+        edge.size <- nrow(serverValues$data_subset)
         tags$div(
           tags$h1(style = paste0("color:", color.blue), edge.name),
           tags$h2(style = paste0("color:", color.blue), paste("Size:", edge.size))
@@ -190,8 +200,8 @@ campfireApp(
     
     output$top.users.bar.extern <- renderPlot({
       serverValues$monitor.domain <- getDefaultReactiveDomain()
-      if(!is.null(serverValues$data.subset)) {
-        serverValues$data.subset %>% 
+      if(!is.null(serverValues$data_subset)) {
+        serverValues$data_subset %>% 
           count(screen_name) %>% 
           arrange(desc(n)) %>%
           slice(1:10) %>%
@@ -219,8 +229,8 @@ campfireApp(
     })
     
     output$top.hashtags.bar.extern <- renderPlot({
-      if(!is.null(serverValues$data.subset)) {
-        serverValues$data.subset %>%
+      if(!is.null(serverValues$data_subset)) {
+        serverValues$data_subset %>%
           filter(!is.na(hashtags)) %>%
           unnest(hashtags) %>%
           mutate(hashtags = toupper(hashtags)) %>%
@@ -265,8 +275,8 @@ campfireApp(
       }
     })
     
-    observeEvent(serverValues$query.c, {
-      text <- serverValues$query.c[!is.na(serverValues$query.c)]
+    observeEvent(serverValues$query, {
+      text <- serverValues$query[!is.na(serverValues$query)]
       for(i in which(grepl("\\s", text))) {
         text[i] <- paste0('"', text[i], '"')
       }
