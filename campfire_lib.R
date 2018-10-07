@@ -1,3 +1,16 @@
+# Default search query for app startup
+default_queries <- paste(c("#DataScience",
+                           "#DataAnalytics",
+                           "#DataAnalysis",
+                           "#MachineLearning",
+                           "#DeepLearning",
+                           "#BigData",
+                           "#data",
+                           "#Programming",
+                           "#Math",
+                           "#rstats"),
+                         collapse = " ")
+
 # MW Shiny ----------------------------------------------------------------
 
 campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA, urlmonitor = NA, serverFunct = NA) {
@@ -23,13 +36,15 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       }
       withProgress(message = "Reloading...", value = 0, session = d, {
         incProgress(0, detail = "Getting Tweets", session = d)
-        serverValues$data <- getData(serverValues$query,
+        serverValues$data <- getData(serverValues$queries,
                                      serverValues$number_tweets,
-                                     FALSE, serverValues$search_type)
+                                     FALSE,
+                                     token,
+                                     serverValues$search_type)
         incProgress(1/3, detail = "Generating Wall", session = d)
-        serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query)
-        serverValues$edges <- getEdges(serverValues$data, serverValues$query)
-        serverValues$nodes <- getNodes(serverValues$data, serverValues$query)
+        serverValues$col.list <- UpdateWall(serverValues$data, serverValues$queries)
+        serverValues$edges <- getEdges(serverValues$data, serverValues$queries)
+        serverValues$nodes <- getNodes(serverValues$data, serverValues$queries)
         incProgress(1/3, detail = "Generating Graph", session = d)
         serverValues$type <- "none"
       })
@@ -39,7 +54,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     isolate({
       if(serverValues$initialized == FALSE) {
         UpdateValues()
-        serverValues$query <- StringQueryToVector(serverValues$query)
+        serverValues$queries <- StringQueryToVector(serverValues$queries)
         UpdateButton()
         serverValues$initialized <- TRUE
       }
@@ -49,7 +64,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     # corresponding areas
     observeEvent(input$update, {
       UpdateValues()
-      serverValues$query <- StringQueryToVector(serverValues$query)
+      serverValues$queries <- StringQueryToVector(serverValues$queries)
       UpdateButton()
     })
     
@@ -57,7 +72,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       UpdateValues()
       text <- read.table(serverValues$file$datapath, header = FALSE,
                          comment.char = "", stringsAsFactors = FALSE)$V1
-      serverValues$query <- text
+      serverValues$queries <- text
     })
     
     # Actions to be taken when edge or node selection is changed
@@ -86,28 +101,28 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     # remove the data associated
     observeEvent(input$delete_node, {
       UpdateValues()
-      index <- which(serverValues$query %in% serverValues$delete_node)
-      serverValues$query[index] <- NA
+      index <- which(serverValues$queries %in% serverValues$delete_node)
+      serverValues$queries[index] <- NA
       serverValues$data_subset <- NULL
       serverValues$data <- serverValues$data %>%
                              filter(query != serverValues$delete_node)
-      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query)
+      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$queries)
     })
     
     # Observe when text on the wall is clicked, and update query and wall/floor
     observeEvent(input$clicked_text, {
       UpdateValues()
       if(substr(serverValues$clicked_text, 1, 1) == "#" ||  substr(serverValues$clicked_text, 1, 1) == "@") {
-        if(toupper(serverValues$clicked_text) %in% toupper(serverValues$query)) {
-          index <- which(toupper(serverValues$query) %in% toupper(serverValues$clicked_text))
-          text <- serverValues$query[index]
+        if(toupper(serverValues$clicked_text) %in% toupper(serverValues$queries)) {
+          index <- which(toupper(serverValues$queries) %in% toupper(serverValues$clicked_text))
+          text <- serverValues$queries[index]
           serverValues$current_node_id <- text
           serverValues$data_subset <- getDataSubset(serverValues$data, text)
           serverValues$type <- "node"
         } else {
-          index <- which(is.na(serverValues$query))[1]
+          index <- which(is.na(serverValues$queries))[1]
           if(!is.na(index)) {
-            serverValues$query[[index]] <- serverValues$clicked_text
+            serverValues$queries[[index]] <- serverValues$clicked_text
             UpdateButton()
           }
         }
@@ -129,8 +144,8 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
         new.index <- 10
       }
       # Store old values to move the old node
-      tmp.node <- serverValues$query[new.index]
-      tmp.index <- which(serverValues$query %in% serverValues$current_node_id)
+      tmp.node <- serverValues$queries[new.index]
+      tmp.index <- which(serverValues$queries %in% serverValues$current_node_id)
       tmp.col <- serverValues$col.list[[new.index]]
       start.distance <- ((serverValues$start_position[[1]]$x)^2 + (serverValues$start_position[[1]]$y)^2)^.5
       end.distance <- ((serverValues$end_position[[1]]$x)^2 + (serverValues$end_position[[1]]$y)^2)^.5
@@ -153,8 +168,8 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       if(tmp.index != new.index) {
         visNetworkProxy("network") %>%
           visMoveNode(tmp.node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
-        serverValues$query[new.index] <- serverValues$current_node_id
-        serverValues$query[tmp.index] <- tmp.node
+        serverValues$queries[new.index] <- serverValues$current_node_id
+        serverValues$queries[tmp.index] <- tmp.node
         serverValues$col.list[[new.index]] <- serverValues$col.list[[tmp.index]]
         serverValues$col.list[[tmp.index]] <- tmp.col
       }
@@ -165,7 +180,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.1
     }, {
       UpdateValues()
-      serverValues$query[1] <- serverValues$text.column.1
+      serverValues$queries[1] <- serverValues$text.column.1
       UpdateButton()
     })
     
@@ -173,7 +188,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.2
     }, {
       UpdateValues()
-      serverValues$query[2] <- serverValues$text.column.2
+      serverValues$queries[2] <- serverValues$text.column.2
       UpdateButton()
     })
     
@@ -181,7 +196,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.3
     }, {
       UpdateValues()
-      serverValues$query[3] <- serverValues$text.column.3
+      serverValues$queries[3] <- serverValues$text.column.3
       UpdateButton()
     })
     
@@ -189,7 +204,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.4
     }, {
       UpdateValues()
-      serverValues$query[4] <- serverValues$text.column.4
+      serverValues$queries[4] <- serverValues$text.column.4
       UpdateButton()
     })
     
@@ -197,7 +212,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.5
     }, {
       UpdateValues()
-      serverValues$query[5] <- serverValues$text.column.5
+      serverValues$queries[5] <- serverValues$text.column.5
       UpdateButton()
     })
     
@@ -205,7 +220,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.6
     }, {
       UpdateValues()
-      serverValues$query[6] <- serverValues$text.column.6
+      serverValues$queries[6] <- serverValues$text.column.6
       UpdateButton()
     })
     
@@ -213,7 +228,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.7
     }, {
       UpdateValues()
-      serverValues$query[7] <- serverValues$text.column.7
+      serverValues$queries[7] <- serverValues$text.column.7
       UpdateButton()
     })
     
@@ -221,7 +236,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.8
     }, {
       UpdateValues()
-      serverValues$query[8] <- serverValues$text.column.8
+      serverValues$queries[8] <- serverValues$text.column.8
       UpdateButton()
     })
     
@@ -229,7 +244,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.9
     }, {
       UpdateValues()
-      serverValues$query[9] <- serverValues$text.column.9
+      serverValues$queries[9] <- serverValues$text.column.9
       UpdateButton()
     })
     
@@ -237,7 +252,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.10
     }, {
       UpdateValues()
-      serverValues$query[10] <- serverValues$text.column.10
+      serverValues$queries[10] <- serverValues$text.column.10
       UpdateButton()
     })
     
@@ -245,7 +260,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.11
     }, {
       UpdateValues()
-      serverValues$query[11] <- serverValues$text.column.11
+      serverValues$queries[11] <- serverValues$text.column.11
       UpdateButton()
     })
     
@@ -253,7 +268,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.12
     }, {
       UpdateValues()
-      serverValues$query[12] <- serverValues$text.column.12
+      serverValues$queries[12] <- serverValues$text.column.12
       UpdateButton()
     })
     

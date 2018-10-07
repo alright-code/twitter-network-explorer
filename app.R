@@ -18,19 +18,6 @@ source("external-monitor.R")
 source("utilities.R")
 source("token_info.R")
 
-# Default search query for app startup
-default_query <- paste(c("#DataScience",
-                         "#DataAnalytics",
-                         "#DataAnalysis",
-                         "#MachineLearning",
-                         "#DeepLearning",
-                         "#BigData",
-                         "#data",
-                         "#Programming",
-                         "#Math",
-                         "#rstats"),
-                       collapse = " ")
-
 # Set twitter token, consumer_key and consumer_secret stored in token_info.R file
 token <- get_bearer_token(consumer_key, consumer_secret)
 
@@ -38,7 +25,7 @@ campfireApp(
   
   controller = div(
     h1("Controller"),
-    textAreaInput("query", "Search Query", default_query, height = '200px'),
+    textAreaInput("queries", "Search Queries", default_queries, height = '200px'),
     fileInput("file", "Upload File", accept = c("text/plain")),
     sliderInput(inputId = "number_tweets",
                 label = "Choose number of tweets for the search:",
@@ -275,12 +262,12 @@ campfireApp(
       }
     })
     
-    observeEvent(serverValues$query, {
-      text <- serverValues$query[!is.na(serverValues$query)]
+    observeEvent(serverValues$queries, {
+      text <- serverValues$queries[!is.na(serverValues$queries)]
       for(i in which(grepl("\\s", text))) {
         text[i] <- paste0('"', text[i], '"')
       }
-      updateTextInput(session, "query", value = paste0(text, collapse = " "))
+      updateTextInput(session, "queries", value = paste0(text, collapse = " "))
     })
     
     observeEvent(serverValues$current_node_id, {
