@@ -11,12 +11,12 @@ getData <- function(query, num.tweets, include.rts, type) {
 
 # Input: data dataframe, query
 # Output: dataframe only with tweets including the specified hashtags in query
-getDataSubset <- function(data, query) {
-  if(length(query) == 1) {
-    filter(data, query %in% query) %>%
+getDataSubset <- function(data, subset_query) {
+  if(length(subset_query) == 1) {
+    filter(data, query %in% subset_query) %>%
       distinct(status_id, .keep_all = TRUE)
   } else {
-    filter(data, query %in% query) %>%
+    filter(data, query %in% subset_query) %>%
       group_by(status_id) %>%
       filter(n() > 1) %>%
       ungroup() %>%

@@ -3,10 +3,7 @@
 campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA, urlmonitor = NA, serverFunct = NA) {
   ui <- campfireUI(controller, wall, floor, datamonitor, urlmonitor)
   
-  serverValues <- reactiveValues()
-  
-  # Default serverValues variables
-  serverValues$initialized <- FALSE
+  serverValues <- reactiveValues(initialized = FALSE)
   
   campfire_server <- shinyServer(function(input, output, session) {
     
