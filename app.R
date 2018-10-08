@@ -25,7 +25,7 @@ campfireApp(
   
   controller = div(
     h1("Controller"),
-    textAreaInput("queries", "Search Queries", default_queries, height = '200px'),
+    textAreaInput("queries_string", "Search Queries", default_queries, height = '200px'),
     fileInput("file", "Upload File", accept = c("text/plain")),
     sliderInput(inputId = "number_tweets",
                 label = "Choose number of tweets for the search:",
@@ -97,7 +97,6 @@ campfireApp(
                           },
                     scale: 1
             })
-            Shiny.onInputChange('type', 'none');
           }") %>%
           visPhysics(stabilization = FALSE, enabled = FALSE) %>%
           visInteraction(dragView = FALSE, zoomView = FALSE) %>%
@@ -267,7 +266,7 @@ campfireApp(
       for(i in which(grepl("\\s", text))) {
         text[i] <- paste0('"', text[i], '"')
       }
-      updateTextInput(session, "queries", value = paste0(text, collapse = " "))
+      updateTextInput(session, "queries_string", value = paste0(text, collapse = " "))
     })
     
     observeEvent(serverValues$current_node_id, {

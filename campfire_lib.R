@@ -52,9 +52,9 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     
     # Get default data on startup
     isolate({
-      if(serverValues$initialized == FALSE) {
+      if(!serverValues$initialized) {
         UpdateValues()
-        serverValues$queries <- StringQueryToVector(serverValues$queries)
+        serverValues$queries <- StringQueryToVector(serverValues$queries_string)
         UpdateButton()
         serverValues$initialized <- TRUE
       }
@@ -64,7 +64,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     # corresponding areas
     observeEvent(input$update, {
       UpdateValues()
-      serverValues$queries <- StringQueryToVector(serverValues$queries)
+      serverValues$queries <- StringQueryToVector(serverValues$queries_string)
       UpdateButton()
     })
     
@@ -268,7 +268,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       input$button.column.12
     }, {
       UpdateValues()
-      serverValues$queries[12] <- serverValues$text.column.12
+      serverValues$queries[[12]] <- serverValues$text.column.12
       UpdateButton()
     })
     
