@@ -5,10 +5,6 @@ library(tidyverse)
 library(ggplot2)
 library(useful)
 
-# Do network changes in R over javascript
-# Minimize Reactive Variables
-# 
-
 source("app-only-auth-twitter.R")
 source("campfire_lib.R")
 source("data.R")
@@ -42,7 +38,7 @@ campfireApp(
   ),
   
   wall = div(
-    uiOutput("wall.ui"),
+    uiOutput("wall_ui"),
     style = paste0("background: ", color.back, "; overflow: hidden;",
                    "height: 665px")
   ),
@@ -60,7 +56,7 @@ campfireApp(
   datamonitor = div(fluidPage(
     fluidRow(
       column(12,
-            uiOutput("tweets.info")
+            uiOutput("tweets_info")
       )
     )),
     fluidRow(
@@ -97,6 +93,8 @@ campfireApp(
                           },
                     scale: 1
             })
+            Shiny.onInputChange('current_node_id', -1);
+            Shiny.onInputChange('current_edge_index', -1);
           }") %>%
           visPhysics(stabilization = FALSE, enabled = FALSE) %>%
           visInteraction(dragView = FALSE, zoomView = FALSE) %>%
@@ -105,26 +103,28 @@ campfireApp(
                     click = "function(properties) {
                               if(this.getSelectedNodes().length == 1) {
                                 Shiny.onInputChange('current_node_id', this.getSelectedNodes()[0]);
-                                Shiny.onInputChange('type', 'node');
+                                Shiny.onInputChange('current_edge_index', -1);
                               } else if(this.getSelectedEdges().length == 1) {
                                 Shiny.onInputChange('current_edge_index', this.body.data.edges.get(properties.edges[0]).index);
-                                Shiny.onInputChange('type', 'edge');
+                                Shiny.onInputChange('current_node_id', -1);
                               } else {
-                                Shiny.onInputChange('type', 'none');
+                                Shiny.onInputChange('current_node_id', -1);
+                                Shiny.onInputChange('current_edge_index', -1);
                               }
                             }",
                     doubleClick = "function() {
                                      if(this.getSelectedNodes().length == 1) {
                                        Shiny.onInputChange('delete_node', this.getSelectedNodes()[0]);
                                        this.deleteSelected();
-                                       Shiny.onInputChange('type', 'none');
+                                       Shiny.onInputChange('current_node_id', -1);
+                                       Shiny.onInputChange('current_edge_index', -1);
                                      }
                                    }",
                     dragStart = "function() {
                                  var sel = this.getSelectedNodes();
                                  if(sel.length == 1) {
                                    Shiny.onInputChange('current_node_id', this.getSelectedNodes()[0]);
-                                   Shiny.onInputChange('type', 'node');
+                                   Shiny.onInputChange('current_edge_index', -1)
                                    Shiny.onInputChange('start_position', this.getPositions(sel[0]))
                                  }
                                }",
@@ -139,18 +139,20 @@ campfireApp(
       }
     })
     
-    output$tweets.info <- renderUI({
-      # Stuff to print when node is selected
-      if(serverValues$type == "node") {
+    output$tweets_info <- renderUI({
+      if(serverValues$current_node_id == -1 && serverValues$current_edge_index == -1) {
+        tags$div(
+          tags$h1(style = paste0("color:", color.blue), "Twitter Network Explorer"),
+          tags$h2(style = paste0("color:", color.blue), paste("Total number of tweets found:", nrow(serverValues$data)))  
+        )
+      } else if(serverValues$current_node_id != -1) {
         node.name <- serverValues$current_node_id
         node.size <- nrow(serverValues$data_subset)
         tags$div(
           tags$h1(style = paste0("color:", color.blue), node.name),
           tags$h2(style = paste0("color:", color.blue), paste("Size:", node.size))
         )
-      # Stuff to print when edge is selected
-      # Percent Commonality
-      } else if(serverValues$type == "edge") {
+      } else if(serverValues$current_edge_index != -1) {
         edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
         query <- c(as.character(edge$to), as.character(edge$from))
         edge.name <- paste(query, collapse = " AND ")
@@ -159,16 +161,10 @@ campfireApp(
           tags$h1(style = paste0("color:", color.blue), edge.name),
           tags$h2(style = paste0("color:", color.blue), paste("Size:", edge.size))
         )
-      # Stuff to print when nothing is selected
-      } else if(serverValues$type == "none") {
-        tags$div(
-          tags$h1(style = paste0("color:", color.blue), "Twitter Network Explorer"),
-          tags$h2(style = paste0("color:", color.blue), paste("Total number of tweets found:", nrow(serverValues$data)))  
-        )
       }
     })
     
-    output$wall.ui <- renderUI({
+    output$wall_ui <- renderUI({
       fluidPage(
         tags$script(HTML(
           "$(document).on('click', '.clickable', function () {
@@ -178,7 +174,7 @@ campfireApp(
         )),
         fluidRow(
           lapply(1:12, function(col.num) {
-            serverValues$col.list[[col.num]] 
+            serverValues$col_list[[col.num]] 
           })
         )
       )
