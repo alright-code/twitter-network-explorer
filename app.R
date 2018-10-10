@@ -76,7 +76,7 @@ campfireApp(
     ),
     style = paste0("background: ", color.back, ";
                    overflow: hidden;
-                   height: 1050px")
+                   height: 1080px")
   ),
   
   urlmonitor = div(fluidPage(
@@ -260,7 +260,7 @@ campfireApp(
         redirectScript <- paste0("window = window.open('", serverValues$url, "');")
         tags$script(HTML(redirectScript))
       } else {
-        redirectScript <- paste0("window = window.open('", "http://orion.tw.rpi.edu/~olyerickson/RenIDEA_black_invert.jpg", "');")
+        redirectScript <- paste0("window = window.open('", "https://docs.google.com/presentation/d/1g_q5qQTJAt4jVekozFlEsnEo4XdveubVzLC2t9aeWlo/present", "');")
         tags$script(HTML(redirectScript))
       }
     })
