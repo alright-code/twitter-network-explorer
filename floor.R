@@ -1,42 +1,15 @@
-
-# Data Functions ----------------------------------------------------------
-
-# Search twitter for n.tweets tweets matching the query and whether to include rts,
-#   return a data frame of those tweets
-GetData <- function(query.c, num.tweets, include.rts, type) {
-  query.c <- query.c[!is.na(query.c)]
-  data <- search_tweets2(query.c, n = num.tweets, include_rts = include.rts,
-                        token = token, type = type, lang = "en", verbose = TRUE)
-  return(data)
-}
-
-# Input: data dataframe, query
-# Output: dataframe only with tweets including the specified hashtags in query
-GetDataSubset <- function(data, query.c) {
-  if(length(query.c) == 1) {
-    filter(data, query %in% query.c) %>%
-      distinct(status_id, .keep_all = TRUE)
-  } else {
-    filter(data, query %in% query.c) %>%
-      group_by(status_id) %>%
-      filter(n() > 1) %>%
-      ungroup() %>%
-      distinct(status_id, .keep_all = TRUE)
-  }
-}
-
 # Node Functions ----------------------------------------------------------
 
 # Input: data dataframe, query vector
 # Output: Data frame with id and value columns
-GetNodes <- function(data, query.c) {
-  if(length(query.c[!is.na(query.c)]) != 0) {
-    nodes <- data.frame(id = query.c[!is.na(query.c)],
-                        label = query.c[!is.na(query.c)],
+getNodes <- function(data, query) {
+  if(length(query[!is.na(query)]) != 0) {
+    nodes <- data.frame(id = query[!is.na(query)],
+                        label = query[!is.na(query)],
                         color = color.blue,
                         font = "10px arial #fd7e14")
-    nodes$value <- GetNodesValue(data, nodes)
-    nodes <- GetCoords(nodes, query.c)
+    nodes$value <- getNodesValue(data, nodes)
+    nodes <- getCoords(nodes, query)
   } else {
     nodes <- NULL
   }
@@ -45,7 +18,7 @@ GetNodes <- function(data, query.c) {
 
 # Input: data dataframe, nodes dataframe
 # Output: nodes value column
-GetNodesValue <- function(data, nodes) {
+getNodesValue <- function(data, nodes) {
   nodes.rows <- nrow(nodes)
   value <- c(length = nodes.rows)
   # Determine how many tweets include each hashtag
@@ -55,21 +28,23 @@ GetNodesValue <- function(data, nodes) {
   return(value)
 }
 
-GetCoords <- function(nodes, query.c) {
+getCoords <- function(nodes, query) {
   radius <- 5
   scale <- 75
   angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
   angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[3:2])
   angles <- unlist(lapply(1:12, function(x) {
-    if(is.na(query.c[x])) {
+    if(is.na(query[x])) {
       NA
     } else {
       angles[x]
     }
   }))
   angles <- angles[!is.na(angles)]
-  nodes$x <- scale * radius * cos(angles)
-  nodes$y <- -scale * radius * sin(angles)
+  nodes$x <- rep(0, length(query[!is.na(query)]))
+  nodes$y <- rep(0, length(query[!is.na(query)]))
+  nodes$x[1:min(12, length(query[!is.na(query)]))] <- scale * radius * cos(angles)
+  nodes$y[1:min(12, length(query[!is.na(query)]))] <- -scale * radius * sin(angles)
   return(nodes) 
 }
 
@@ -77,13 +52,13 @@ GetCoords <- function(nodes, query.c) {
 
 # Input: data dataframe, query vector
 # Output: Data frame with to and from columns and attribute columns
-GetEdges <- function(data, query.c) {
-  query.c <- query.c[!is.na(query.c)]
+getEdges <- function(data, query) {
+  query <- query[!is.na(query)]
   if(nrow(data) != 0) {
-    edges <- GetToFrom(data, query.c)
+    edges <- getToFrom(data, query)
     if(!is.null(edges)) {
-      edges <- GetEdgesIndices(edges)
-      edges <- GetEdgesColors(edges)
+      edges <- getEdgesIndices(edges)
+      edges <- getEdgesColors(edges)
     }
   } else {
     edges <- NULL
@@ -93,7 +68,7 @@ GetEdges <- function(data, query.c) {
 
 # Input: data dataframe, query vector
 # Output: Two column dataframe with to and from columns
-GetToFrom <- function(data, query.c) {
+getToFrom <- function(data, query) {
   cleaned <- data %>%
     group_by(status_id) %>%
     filter(n() > 1)
@@ -116,7 +91,7 @@ GetToFrom <- function(data, query.c) {
 # Input: edges dataframe
 # Ouput: edges dataframe with indices column
 # Note: Indices are used to track what edge is selected in shiny
-GetEdgesIndices <- function(edges) {
+getEdgesIndices <- function(edges) {
   edges.rows <- nrow(edges)
   if(edges.rows != 0) {
     edges$index <- 1:edges.rows
@@ -126,20 +101,10 @@ GetEdgesIndices <- function(edges) {
 
 # Input: Edges dataframe
 # Output: Edges dataframe with color column
-GetEdgesColors <- function(edges) {
+getEdgesColors <- function(edges) {
   edges.rows <- nrow(edges)
   color <- c(length = edges.rows)
   color[1:edges.rows] <- color.white
   edges$color <- color
   return(edges)
-}
-
-# Misc Functions ----------------------------------------------------------
-
-StringQueryToVector <- function(query.string) {
-  query.c <- scan(text = query.string, what = "character", quiet = TRUE)
-  if(length(query.c) < 12) {
-    query.c[(length(query.c) + 1):12] <- NA
-  }
-  return(query.c)
 }

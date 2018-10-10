@@ -1,44 +1,44 @@
-
-# Defaults ----------------------------------------------------------------
-
-# Default hashtags
-default.query.c <- c("#DataScience", "#DataAnalytics",
-                     "#DataAnalysis", "#MachineLearning",
-                     "#DeepLearning", "#BigData", "#data",
-                     "#Programming", "#Math", "#rstats")
-
-health.query <- c("#HealthTech", "#Healthcare", "#DataScience", "#Bigdata",
-                  "#AI", "#Health", "#Fitness", "#MachineLearning", "#IOT",
-                  "#Nutrition", "#Blockchain")
-
-default.query.string <- paste(default.query.c, collapse = " ")
-
-consumer_key <- "YysJwhUvIYyEZsOqLtE5mlsHv"
-consumer_secret <- "EC997cOOlCzp4qedKVaYCB2zs8HnPyKEhIqLV2PNKCirXartcE"
-
-token <- get_bearer_token(consumer_key, consumer_secret)
+# Default search queries for startup. Used for the controller text box, default value for queries_string.
+default_queries <- paste(c("#DataScience",
+                           "#DataAnalytics",
+                           "#DataAnalysis",
+                           "#MachineLearning",
+                           "#DeepLearning",
+                           "#BigData",
+                           "#data",
+                           "#Programming",
+                           "#Math",
+                           "#rstats"),
+                         collapse = " ")
 
 # MW Shiny ----------------------------------------------------------------
 
-campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA, urlmonitor = NA, serverFunct = NA) {
+campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
+                       urlmonitor = NA, serverFunct = NA) {
+  
   ui <- campfireUI(controller, wall, floor, datamonitor, urlmonitor)
   
-  serverValues <- reactiveValues()
-  
-  # Default serverValues variables
-  serverValues$initialized <- FALSE
+  # MW Shiny central reactive values. initialized makes sure default search is done on startup.
+  serverValues <- reactiveValues(initialized = FALSE,
+                                 data_subset = NULL,
+                                 type = "none",
+                                 current_node_id = -1,
+                                 current_node_index = -1)
   
   campfire_server <- shinyServer(function(input, output, session) {
     
-    UpdateValues <- reactive({
+    updateValues <- reactive({
+      # Updates the central serverValues with the input values from a SPECIFIC window.
+      # Whatever domain calls this will update its input values with serverValues.
       for(inputId in names(input)) {
         serverValues[[inputId]] <- input[[inputId]]
       }
     })
     
-    # Use the controller query to pull information to completely update the app
-    UpdateButton <- reactive({
-      serverValues$data.subset <- NULL
+    updateComplete <- reactive({
+      # Gets tweet data and updates entire wall and entire floor with updated data.
+      # Load bar will default to the specific window domain this is called in. 
+      # We keep track of the monitor domain so the load bar will have priority there if it is open.
       if(is.null(serverValues$monitor.domain)) {
         d <- getDefaultReactiveDomain()
       } else {
@@ -46,92 +46,108 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       }
       withProgress(message = "Reloading...", value = 0, session = d, {
         incProgress(0, detail = "Getting Tweets", session = d)
-        serverValues$data <- GetData(serverValues$query.c,
-                                     serverValues$number.tweets,
-                                     FALSE, serverValues$search.type)
+        serverValues$data <- getData(serverValues$queries,
+                                     serverValues$number_tweets,
+                                     FALSE,
+                                     token,
+                                     serverValues$search_type)
         incProgress(1/3, detail = "Generating Wall", session = d)
-        serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
-        serverValues$edges <- GetEdges(serverValues$data, serverValues$query.c)
-        serverValues$nodes <- GetNodes(serverValues$data, serverValues$query.c)
+        serverValues$col_list <- UpdateWall(serverValues$data, serverValues$queries)
+        serverValues$edges <- getEdges(serverValues$data, serverValues$queries)
+        serverValues$nodes <- getNodes(serverValues$data, serverValues$queries)
         incProgress(1/3, detail = "Generating Graph", session = d)
-        serverValues$type <- "none"
+        serverValues$current_node_id = -1
+        serverValues$current_edge_index = -1
       })
     })
     
-    # Get default data on startup
+    updateFromController <- reactive({
+      # Use the text box input from the controller to replace the current query and update.
+      updateValues()
+      serverValues$queries <- StringQueryToVector(serverValues$queries_string)
+      updateComplete()
+    })
+    
+    # Get default data on startup.
     isolate({
-      if(serverValues$initialized == FALSE) {
-        UpdateValues()
-        serverValues$query.c <- StringQueryToVector(serverValues$query)
-        UpdateButton()
+      if(!serverValues$initialized) {
+        updateFromController()
         serverValues$initialized <- TRUE
       }
     })
     
-    # Observe when update button is pressed, the read in data and update
-    # corresponding areas
     observeEvent(input$update, {
-      UpdateValues()
-      serverValues$query.c <- StringQueryToVector(serverValues$query)
-      UpdateButton()
+      # Update the application from the controller text box queries when the update button is pressed.
+      #
+      # Event:
+      #   Controller update button is pressed
+      updateFromController()
     })
     
     observeEvent(input$file, {
-      UpdateValues()
-      text <- read.table(serverValues$file$datapath, header = FALSE,
+      # Change queries to the input of a text file.
+      #
+      # Event:
+      #   Text file is chosen on controller. 
+      updateValues()
+      serverValues$queries <- read.table(serverValues$file$datapath, header = FALSE,
                          comment.char = "", stringsAsFactors = FALSE)$V1
-      serverValues$query.c <- text
     })
     
     # Actions to be taken when edge or node selection is changed
-    observeEvent({
-      input$current_node_id
+    observeEvent(c(
+      input$current_node_id,
       input$current_edge_index
-      input$type
-      }, {
-        UpdateValues()
+      ), {
+        # Update the information on the external monitor.
+        #
+        # Event:
+        #   Selected node id is changed
+        #   Selected edge index is changed
+        updateValues()
         # When neither an edge or node is selected 
-        if(serverValues$type == "none"){
-          serverValues$data.subset <- NULL
+        if(serverValues$current_node_id == -1 && serverValues$current_edge_index == -1){
+          serverValues$data_subset <- NULL
+        # When node is selected
+        } else if(serverValues$current_node_id != -1) {
+          query <- serverValues$current_node_id
+          serverValues$data_subset <- getDataSubset(serverValues$data, query)
         # When edge is selected
-        } else if(serverValues$type == "edge") {
+        } else if(serverValues$current_edge_index != -1) {
           edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
           query <- c(as.character(edge$to), as.character(edge$from))
-          serverValues$data.subset <- GetDataSubset(serverValues$data, query)
-        # When node is selected
-        } else if(serverValues$type == "node") {
-          query <- serverValues$current_node_id
-          serverValues$data.subset <- GetDataSubset(serverValues$data, query)
+          serverValues$data_subset <- getDataSubset(serverValues$data, query)
         } 
       })
     
     # Observe when a node is chosen to be deleted after a doubleclick, the
     # remove the data associated
     observeEvent(input$delete_node, {
-      UpdateValues()
-      index <- which(serverValues$query.c %in% serverValues$delete_node)
-      serverValues$query.c[index] <- NA
-      serverValues$data.subset <- NULL
+      updateValues()
+      index <- which(serverValues$queries %in% serverValues$delete_node)
+      serverValues$queries[index] <- NA
+      serverValues$data_subset <- NULL
       serverValues$data <- serverValues$data %>%
                              filter(query != serverValues$delete_node)
-      serverValues$col.list <- UpdateWall(serverValues$data, serverValues$query.c)
+      serverValues$col_list <- UpdateWall(serverValues$data, serverValues$queries)
     })
     
     # Observe when text on the wall is clicked, and update query and wall/floor
     observeEvent(input$clicked_text, {
-      UpdateValues()
+      updateValues()
       if(substr(serverValues$clicked_text, 1, 1) == "#" ||  substr(serverValues$clicked_text, 1, 1) == "@") {
-        if(toupper(serverValues$clicked_text) %in% toupper(serverValues$query.c)) {
-          index <- which(toupper(serverValues$query.c) %in% toupper(serverValues$clicked_text))
-          text <- serverValues$query.c[index]
+        if(toupper(serverValues$clicked_text) %in% toupper(serverValues$queries)) {
+          index <- which(toupper(serverValues$queries) %in% toupper(serverValues$clicked_text))
+          text <- serverValues$queries[index]
           serverValues$current_node_id <- text
-          serverValues$data.subset <- GetDataSubset(serverValues$data, text)
-          serverValues$type <- "node"
+          serverValues$data_subset <- getDataSubset(serverValues$data, text)
+          serverValues$current_node_id = -1
+          serverValues$current_edge_index = -1
         } else {
-          index <- which(is.na(serverValues$query.c))[1]
+          index <- which(is.na(serverValues$queries))[1]
           if(!is.na(index)) {
-            serverValues$query.c[[index]] <- serverValues$clicked_text
-            UpdateButton()
+            serverValues$queries[[index]] <- serverValues$clicked_text
+            updateComplete()
           }
         }
       } else {
@@ -141,7 +157,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     
     # Observe when a drag event ends, and adjust columns on wall based on movement
     observeEvent(input$end_position, {
-      UpdateValues()
+      updateValues()
       angle <- cart2pol(serverValues$end_position[[1]]$x, -serverValues$end_position[[1]]$y)$theta
       angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
       angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[3:2], 2*pi)
@@ -152,17 +168,34 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
         new.index <- 10
       }
       # Store old values to move the old node
-      tmp.node <- serverValues$query.c[new.index]
-      tmp.index <- which(serverValues$query.c %in% serverValues$current_node_id)
-      tmp.col <- serverValues$col.list[[new.index]]
+      tmp.node <- serverValues$queries[new.index]
+      tmp.index <- which(serverValues$queries %in% serverValues$current_node_id)
+      tmp.col <- serverValues$col_list[[new.index]]
+      start.distance <- ((serverValues$start_position[[1]]$x)^2 + (serverValues$start_position[[1]]$y)^2)^.5
+      end.distance <- ((serverValues$end_position[[1]]$x)^2 + (serverValues$end_position[[1]]$y)^2)^.5
+      # When we move a node from the center to an edge
+      if(start.distance < 187 && end.distance >= 187) {
+        #Normal 
+        
+      # When we move a node from the edge to the center    
+      } else if(start.distance >= 187 && end.distance < 187) {
+        # Abnormal: 
+        
+      # Normal movement, when both nodes are on the edge  
+      } else if(start.distance >= 187 && end.distance >= 187) {
+        
+      # Move two nodes in the center  
+      } else {
+        # Do nothing
+      }
       # Change the position of the node moved onto
       if(tmp.index != new.index) {
         visNetworkProxy("network") %>%
           visMoveNode(tmp.node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
-        serverValues$query.c[new.index] <- serverValues$current_node_id
-        serverValues$query.c[tmp.index] <- tmp.node
-        serverValues$col.list[[new.index]] <- serverValues$col.list[[tmp.index]]
-        serverValues$col.list[[tmp.index]] <- tmp.col
+        serverValues$queries[new.index] <- serverValues$current_node_id
+        serverValues$queries[tmp.index] <- tmp.node
+        serverValues$col_list[[new.index]] <- serverValues$col_list[[tmp.index]]
+        serverValues$col_list[[tmp.index]] <- tmp.col
       }
     })
     
@@ -170,97 +203,97 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     observeEvent({
       input$button.column.1
     }, {
-      UpdateValues()
-      serverValues$query.c[1] <- serverValues$text.column.1
-      UpdateButton()
+      updateValues()
+      serverValues$queries[1] <- serverValues$text.column.1
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.2
     }, {
-      UpdateValues()
-      serverValues$query.c[2] <- serverValues$text.column.2
-      UpdateButton()
+      updateValues()
+      serverValues$queries[2] <- serverValues$text.column.2
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.3
     }, {
-      UpdateValues()
-      serverValues$query.c[3] <- serverValues$text.column.3
-      UpdateButton()
+      updateValues()
+      serverValues$queries[3] <- serverValues$text.column.3
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.4
     }, {
-      UpdateValues()
-      serverValues$query.c[4] <- serverValues$text.column.4
-      UpdateButton()
+      updateValues()
+      serverValues$queries[4] <- serverValues$text.column.4
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.5
     }, {
-      UpdateValues()
-      serverValues$query.c[5] <- serverValues$text.column.5
-      UpdateButton()
+      updateValues()
+      serverValues$queries[5] <- serverValues$text.column.5
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.6
     }, {
-      UpdateValues()
-      serverValues$query.c[6] <- serverValues$text.column.6
-      UpdateButton()
+      updateValues()
+      serverValues$queries[6] <- serverValues$text.column.6
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.7
     }, {
-      UpdateValues()
-      serverValues$query.c[7] <- serverValues$text.column.7
-      UpdateButton()
+      updateValues()
+      serverValues$queries[7] <- serverValues$text.column.7
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.8
     }, {
-      UpdateValues()
-      serverValues$query.c[8] <- serverValues$text.column.8
-      UpdateButton()
+      updateValues()
+      serverValues$queries[8] <- serverValues$text.column.8
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.9
     }, {
-      UpdateValues()
-      serverValues$query.c[9] <- serverValues$text.column.9
-      UpdateButton()
+      updateValues()
+      serverValues$queries[9] <- serverValues$text.column.9
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.10
     }, {
-      UpdateValues()
-      serverValues$query.c[10] <- serverValues$text.column.10
-      UpdateButton()
+      updateValues()
+      serverValues$queries[10] <- serverValues$text.column.10
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.11
     }, {
-      UpdateValues()
-      serverValues$query.c[11] <- serverValues$text.column.11
-      UpdateButton()
+      updateValues()
+      serverValues$queries[11] <- serverValues$text.column.11
+      updateComplete()
     })
     
     observeEvent({
       input$button.column.12
     }, {
-      UpdateValues()
-      serverValues$query.c[12] <- serverValues$text.column.12
-      UpdateButton()
+      updateValues()
+      serverValues$queries[[12]] <- serverValues$text.column.12
+      updateComplete()
     })
     
     serverFunct(serverValues, output, session)

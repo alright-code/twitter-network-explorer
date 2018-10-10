@@ -5,35 +5,28 @@ library(tidyverse)
 library(ggplot2)
 library(useful)
 
-#Explore Tweets
-#Expand Network
-#Build Network
-
-###Colors###
-color.green <- "#1dee7e"
-color.pink <- "#ee1d8d"
-color.orange <- "#ee7e1d"
-color.white <- "#f0f0f0"
-color.blue <- "#1D8DEE"
-color.back <- "#151E29"
-color.offback <- "#1B2737"
-colors <- c("#1D8DEE", "#1dee7e", "#ee7e1d", "#ee1d8d", "#64B0F3", "#64F3A6", "#F3A664", "#B10D65", "#0D65B1", "#0DB159", "#B1590D", "#F364B0")
-
 source("app-only-auth-twitter.R")
-source("functions.R")
-source("wall.R")
 source("campfire_lib.R")
+source("data.R")
+source("floor.R")
+source("wall.R")
+source("external-monitor.R")
+source("utilities.R")
+source("token_info.R")
+
+# Set twitter token, consumer_key and consumer_secret stored in token_info.R file
+token <- get_bearer_token(consumer_key, consumer_secret)
 
 campfireApp(
   
   controller = div(
     h1("Controller"),
-    textAreaInput("query", "Search Query", default.query.string, height = '200px'),
+    textAreaInput("queries_string", "Search Queries", default_queries, height = '200px'),
     fileInput("file", "Upload File", accept = c("text/plain")),
-    sliderInput(inputId = "number.tweets",
+    sliderInput(inputId = "number_tweets",
                 label = "Choose number of tweets for the search:",
                 min = 50, max = 1000, value = 50),
-    selectInput(inputId = "search.type",
+    selectInput(inputId = "search_type",
                 label = "Search Type:",
                 choices = list("recent", "mixed", "popular")),
     actionButton(inputId = "update",
@@ -45,7 +38,7 @@ campfireApp(
   ),
   
   wall = div(
-    uiOutput("wall.ui"),
+    uiOutput("wall_ui"),
     style = paste0("background: ", color.back, "; overflow: hidden;",
                    "height: 665px")
   ),
@@ -63,7 +56,7 @@ campfireApp(
   datamonitor = div(fluidPage(
     fluidRow(
       column(12,
-            uiOutput("tweets.info")
+            uiOutput("tweets_info")
       )
     )),
     fluidRow(
@@ -100,7 +93,8 @@ campfireApp(
                           },
                     scale: 1
             })
-            Shiny.onInputChange('type', 'none');
+            Shiny.onInputChange('current_node_id', -1);
+            Shiny.onInputChange('current_edge_index', -1);
           }") %>%
           visPhysics(stabilization = FALSE, enabled = FALSE) %>%
           visInteraction(dragView = FALSE, zoomView = FALSE) %>%
@@ -109,26 +103,28 @@ campfireApp(
                     click = "function(properties) {
                               if(this.getSelectedNodes().length == 1) {
                                 Shiny.onInputChange('current_node_id', this.getSelectedNodes()[0]);
-                                Shiny.onInputChange('type', 'node');
+                                Shiny.onInputChange('current_edge_index', -1);
                               } else if(this.getSelectedEdges().length == 1) {
                                 Shiny.onInputChange('current_edge_index', this.body.data.edges.get(properties.edges[0]).index);
-                                Shiny.onInputChange('type', 'edge');
+                                Shiny.onInputChange('current_node_id', -1);
                               } else {
-                                Shiny.onInputChange('type', 'none');
+                                Shiny.onInputChange('current_node_id', -1);
+                                Shiny.onInputChange('current_edge_index', -1);
                               }
                             }",
                     doubleClick = "function() {
                                      if(this.getSelectedNodes().length == 1) {
                                        Shiny.onInputChange('delete_node', this.getSelectedNodes()[0]);
                                        this.deleteSelected();
-                                       Shiny.onInputChange('type', 'none');
+                                       Shiny.onInputChange('current_node_id', -1);
+                                       Shiny.onInputChange('current_edge_index', -1);
                                      }
                                    }",
                     dragStart = "function() {
                                  var sel = this.getSelectedNodes();
                                  if(sel.length == 1) {
                                    Shiny.onInputChange('current_node_id', this.getSelectedNodes()[0]);
-                                   Shiny.onInputChange('type', 'node');
+                                   Shiny.onInputChange('current_edge_index', -1)
                                    Shiny.onInputChange('start_position', this.getPositions(sel[0]))
                                  }
                                }",
@@ -143,36 +139,32 @@ campfireApp(
       }
     })
     
-    output$tweets.info <- renderUI({
-      # Stuff to print when node is selected
-      if(serverValues$type == "node") {
-        node.name <- serverValues$current_node_id
-        node.size <- nrow(serverValues$data.subset)
-        tags$div(
-          tags$h1(style = paste0("color:", color.blue), node.name),
-          tags$h2(style = paste0("color:", color.blue), paste("Size:", node.size))
-        )
-      # Stuff to print when edge is selected
-      # Percent Commonality
-      } else if(serverValues$type == "edge") {
-        edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
-        query <- c(as.character(edge$to), as.character(edge$from))
-        edge.name <- paste(query, collapse = " AND ")
-        edge.size <- nrow(serverValues$data.subset)
-        tags$div(
-          tags$h1(style = paste0("color:", color.blue), edge.name),
-          tags$h2(style = paste0("color:", color.blue), paste("Size:", edge.size))
-        )
-      # Stuff to print when nothing is selected
-      } else if(serverValues$type == "none") {
+    output$tweets_info <- renderUI({
+      if(serverValues$current_node_id == -1 && serverValues$current_edge_index == -1) {
         tags$div(
           tags$h1(style = paste0("color:", color.blue), "Twitter Network Explorer"),
           tags$h2(style = paste0("color:", color.blue), paste("Total number of tweets found:", nrow(serverValues$data)))  
         )
+      } else if(serverValues$current_node_id != -1) {
+        node.name <- serverValues$current_node_id
+        node.size <- nrow(serverValues$data_subset)
+        tags$div(
+          tags$h1(style = paste0("color:", color.blue), node.name),
+          tags$h2(style = paste0("color:", color.blue), paste("Size:", node.size))
+        )
+      } else if(serverValues$current_edge_index != -1) {
+        edge <- serverValues$edges[serverValues$edges$index == serverValues$current_edge_index, ]
+        query <- c(as.character(edge$to), as.character(edge$from))
+        edge.name <- paste(query, collapse = " AND ")
+        edge.size <- nrow(serverValues$data_subset)
+        tags$div(
+          tags$h1(style = paste0("color:", color.blue), edge.name),
+          tags$h2(style = paste0("color:", color.blue), paste("Size:", edge.size))
+        )
       }
     })
     
-    output$wall.ui <- renderUI({
+    output$wall_ui <- renderUI({
       fluidPage(
         tags$script(HTML(
           "$(document).on('click', '.clickable', function () {
@@ -182,7 +174,7 @@ campfireApp(
         )),
         fluidRow(
           lapply(1:12, function(col.num) {
-            serverValues$col.list[[col.num]] 
+            serverValues$col_list[[col.num]] 
           })
         )
       )
@@ -190,8 +182,8 @@ campfireApp(
     
     output$top.users.bar.extern <- renderPlot({
       serverValues$monitor.domain <- getDefaultReactiveDomain()
-      if(!is.null(serverValues$data.subset)) {
-        serverValues$data.subset %>% 
+      if(!is.null(serverValues$data_subset)) {
+        serverValues$data_subset %>% 
           count(screen_name) %>% 
           arrange(desc(n)) %>%
           slice(1:10) %>%
@@ -219,8 +211,8 @@ campfireApp(
     })
     
     output$top.hashtags.bar.extern <- renderPlot({
-      if(!is.null(serverValues$data.subset)) {
-        serverValues$data.subset %>%
+      if(!is.null(serverValues$data_subset)) {
+        serverValues$data_subset %>%
           filter(!is.na(hashtags)) %>%
           unnest(hashtags) %>%
           mutate(hashtags = toupper(hashtags)) %>%
@@ -265,12 +257,12 @@ campfireApp(
       }
     })
     
-    observeEvent(serverValues$query.c, {
-      text <- serverValues$query.c[!is.na(serverValues$query.c)]
+    observeEvent(serverValues$queries, {
+      text <- serverValues$queries[!is.na(serverValues$queries)]
       for(i in which(grepl("\\s", text))) {
         text[i] <- paste0('"', text[i], '"')
       }
-      updateTextInput(session, "query", value = paste0(text, collapse = " "))
+      updateTextInput(session, "queries_string", value = paste0(text, collapse = " "))
     })
     
     observeEvent(serverValues$current_node_id, {
