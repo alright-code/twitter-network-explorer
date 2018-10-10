@@ -61,10 +61,10 @@ campfireApp(
     )),
     fluidRow(
       column(6,
-             plotOutput("top.users.bar.extern", height = "920px")
+             plotOutput("top.users.bar.extern", height = "1050px")
              ),
       column(6,
-             plotOutput("top.hashtags.bar.extern", height = "920px")
+             plotOutput("top.hashtags.bar.extern", height = "1080px")
              )
     ),
     style = paste0("background: ", color.back, ";
