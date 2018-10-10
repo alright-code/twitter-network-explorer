@@ -19,7 +19,7 @@ StringQueryToVector <- function(queries_string) {
   #                   Individual queries longer than a word are put in double quotes.
   # Returns:
   #   Vector of queries from the string.
-  queries <- scan(text = query.string, what = "character", quiet = TRUE)
+  queries <- scan(text = queries_string, what = "character", quiet = TRUE)
   if(length(queries) < 12) {
     queries[(length(queries) + 1):12] <- NA
   }
