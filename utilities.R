@@ -11,10 +11,17 @@ colors <- c("#1D8DEE", "#1dee7e", "#ee7e1d", "#ee1d8d", "#64B0F3", "#64F3A6", "#
 
 # Misc Functions ----------------------------------------------------------
 
-StringQueryToVector <- function(query.string) {
-  query <- scan(text = query.string, what = "character", quiet = TRUE)
-  if(length(query) < 12) {
-    query[(length(query) + 1):12] <- NA
+StringQueryToVector <- function(queries_string) {
+  # Converts a string of queries to a vector of queries
+  # 
+  # Args:
+  #   queries_string: String of queries, max length 12.
+  #                   Individual queries longer than a word are put in double quotes.
+  # Returns:
+  #   Vector of queries from the string.
+  queries <- scan(text = query.string, what = "character", quiet = TRUE)
+  if(length(queries) < 12) {
+    queries[(length(queries) + 1):12] <- NA
   }
-  return(query)
+  return(queries)
 }
