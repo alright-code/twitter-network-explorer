@@ -69,7 +69,7 @@ campfireApp(
     ),
     style = paste0("background: ", color.back, ";
                    overflow: hidden;
-                   height: 1050px")
+                   height: 1080px")
   ),
   
   urlmonitor = div(fluidPage(
