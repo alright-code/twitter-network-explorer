@@ -127,6 +127,10 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     # Observe when a node is chosen to be deleted after a doubleclick, the
     # remove the data associated
     observeEvent(input$delete_node, {
+      # Update the data when a node is deleted.
+      #
+      # Event:
+      #   Node is double clicked on the floor
       updateValues()
       index <- which(serverValues$queries %in% serverValues$delete_node)
       serverValues$queries[index] <- NA
@@ -138,6 +142,10 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
     
     # Observe when text on the wall is clicked, and update query and wall/floor
     observeEvent(input$clicked_text, {
+      # Determine what was clicked on the wall and update the appropriate values.
+      #
+      # Event:
+      #   Text is clicked on the wall.
       updateValues()
       if(substr(serverValues$clicked_text, 1, 1) == "#" ||  substr(serverValues$clicked_text, 1, 1) == "@") {
         if(toupper(serverValues$clicked_text) %in% toupper(serverValues$queries)) {
@@ -159,8 +167,11 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       }
     })
     
-    # Observe when a drag event ends, and adjust columns on wall based on movement
     observeEvent(input$end_position, {
+      # Change column positions based on moved nodes.
+      #
+      # Event:
+      #   Node is released from drag on the foor.
       updateValues()
       angle <- cart2pol(serverValues$end_position[[1]]$x, -serverValues$end_position[[1]]$y)$theta
       angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
@@ -211,7 +222,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[1] <- serverValues$text.column.1
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.2
     }, {
@@ -219,7 +229,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[2] <- serverValues$text.column.2
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.3
     }, {
@@ -227,7 +236,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[3] <- serverValues$text.column.3
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.4
     }, {
@@ -235,7 +243,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[4] <- serverValues$text.column.4
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.5
     }, {
@@ -243,7 +250,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[5] <- serverValues$text.column.5
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.6
     }, {
@@ -251,7 +257,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[6] <- serverValues$text.column.6
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.7
     }, {
@@ -259,7 +264,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[7] <- serverValues$text.column.7
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.8
     }, {
@@ -267,7 +271,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[8] <- serverValues$text.column.8
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.9
     }, {
@@ -275,7 +278,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[9] <- serverValues$text.column.9
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.10
     }, {
@@ -283,7 +285,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[10] <- serverValues$text.column.10
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.11
     }, {
@@ -291,7 +292,6 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$queries[11] <- serverValues$text.column.11
       updateComplete()
     })
-    
     observeEvent({
       input$button.column.12
     }, {
