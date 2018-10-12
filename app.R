@@ -6,16 +6,12 @@ library(ggplot2)
 library(useful)
 
 source("app-only-auth-twitter.R")
-source("campfire_lib.R")
 source("data.R")
 source("floor.R")
 source("wall.R")
 source("external-monitor.R")
 source("utilities.R")
-source("token_info.R")
-
-# Set twitter token, consumer_key and consumer_secret stored in token_info.R file
-token <- get_bearer_token(consumer_key, consumer_secret)
+source("campfire_lib.R")
 
 campfireApp(
   

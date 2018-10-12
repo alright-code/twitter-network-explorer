@@ -1,3 +1,7 @@
+# Set twitter token, consumer_key and consumer_secret stored in token_info.R file
+source("token_info.R")
+token <- get_bearer_token(consumer_key, consumer_secret)
+
 # Default search queries for startup. Used for the controller text box, default value for queries_string.
 default_queries <- paste(c("#DataScience",
                            "#DataAnalytics",
