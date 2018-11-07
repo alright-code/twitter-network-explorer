@@ -1,0 +1,25 @@
+```{r}
+source("app-only-auth-twitter.R")
+source("token_info.R")
+token <- get_bearer_token(consumer_key, consumer_secret)
+
+library(tidygraph)
+library(rtweet)
+library(tidyverse)
+
+queries <- c("#hello", "#goodbye", "farewell")
+tweets <- search_tweets2(q = queries, token = token, include_rts = FALSE, lang = "en")[ ,c("status_id", "text")]
+```
+
+```{r}
+nodes <- as.data.frame(queries)
+nodes$ids <- c()
+for(tweet_text in tweets$text) {
+  for(q in queries) {
+    if(grepl(toupper(q), toupper(tweet_text))) {
+      nodes[query==q, ]$ids = nodes[query==q, ]$size + 1
+    }
+  }
+}
+nodes
+```

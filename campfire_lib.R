@@ -59,6 +59,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
         serverValues$col_list <- UpdateWall(serverValues$data, serverValues$queries)
         serverValues$edges <- getEdges(serverValues$data, serverValues$queries)
         serverValues$nodes <- getNodes(serverValues$data, serverValues$queries)
+        print(serverValues$nodes)
         incProgress(1/3, detail = "Generating Graph", session = d)
         serverValues$current_node_id = -1
         serverValues$current_edge_index = -1
@@ -177,41 +178,56 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
       angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[3:2], 2*pi)
       # Find the closest angle value to the newly calculated
-      new.index <- which(abs(angles - angle) == min(abs(angles - angle)))
+      to_index <- which(abs(angles - angle) == min(abs(angles - angle)))
       # If angle is close to 2pi, set the index to 10
-      if(new.index == 13) {
-        new.index <- 10
+      if(to_index == 13) {
+        to_index <- 10
       }
       # Store old values to move the old node
-      tmp.node <- serverValues$queries[new.index]
-      tmp.index <- which(serverValues$queries %in% serverValues$current_node_id)
-      tmp.col <- serverValues$col_list[[new.index]]
-      start.distance <- ((serverValues$start_position[[1]]$x)^2 + (serverValues$start_position[[1]]$y)^2)^.5
-      end.distance <- ((serverValues$end_position[[1]]$x)^2 + (serverValues$end_position[[1]]$y)^2)^.5
-      # When we move a node from the center to an edge
-      if(start.distance < 187 && end.distance >= 187) {
-        #Normal 
+      to_node <- serverValues$queries[[to_index]]
+      from_index <- which(serverValues$queries %in% serverValues$current_node_id)
+      to_col <- serverValues$col_list[[to_index]]
+      start_distance <- ((serverValues$start_position[[1]]$x)^2 + (serverValues$start_position[[1]]$y)^2)^.5
+      end_distance <- ((serverValues$end_position[[1]]$x)^2 + (serverValues$end_position[[1]]$y)^2)^.5
+      if(start_distance < 187 && end_distance >= 187) {
+        # When we move a node from the center to an edge
+        visNetworkProxy("network") %>%
+          visMoveNode(to_node, 0, 0)
+        serverValues$queries[[to_index]] <- serverValues$current_node_id
+        serverValues$queries[[from_index]] <- to_node
+        serverValues$col_list[[to_index]] <- UpdateColumn(
+          getDataSubset(serverValues$data, serverValues$current_node_id),
+          serverValues$queries,
+          to_index) 
         
-      # When we move a node from the edge to the center    
-      } else if(start.distance >= 187 && end.distance < 187) {
-        # Abnormal: 
+      } else if(start_distance >= 187 && end_distance < 187) {
+        # When we move a node from the edge to the center 
+        serverValues$queries <- c(serverValues$queries, serverValues$current_node_id)
+        serverValues$queries[[from_index]] <- NA
+        serverValues$col_list[[from_index]] <- column(width = 1,
+                                                     textInput(paste0("text.column.", from_index), label = ""),
+                                                     actionButton(paste0("button.column.", from_index), "Submit"))
+    
+        
         
       # Normal movement, when both nodes are on the edge  
-      } else if(start.distance >= 187 && end.distance >= 187) {
+      } else if(start_distance >= 187 && end_distance >= 187) {
+        # Change the position of the node moved onto
+        if(from_index != new_index) {
+          visNetworkProxy("network") %>%
+            visMoveNode(to_node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
+          serverValues$queries[to_index] <- serverValues$current_node_id
+          serverValues$queries[from_index] <- to_node
+          serverValues$col_list[[to_index]] <- serverValues$col_list[[from_index]]
+          serverValues$col_list[[from_index]] <- to_col
+        }
         
       # Move two nodes in the center  
       } else {
         # Do nothing
       }
-      # Change the position of the node moved onto
-      if(tmp.index != new.index) {
-        visNetworkProxy("network") %>%
-          visMoveNode(tmp.node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
-        serverValues$queries[new.index] <- serverValues$current_node_id
-        serverValues$queries[tmp.index] <- tmp.node
-        serverValues$col_list[[new.index]] <- serverValues$col_list[[tmp.index]]
-        serverValues$col_list[[tmp.index]] <- tmp.col
-      }
+      
+      
     })
     
     # Observe all wall buttons, then update query and wall/floor

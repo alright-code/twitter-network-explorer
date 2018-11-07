@@ -12,15 +12,54 @@ getNodes <- function(data, queries) {
   #     id  label  color  font  value  x  y 
   if(length(queries[!is.na(queries)]) != 0) {
     nodes <- data.frame(id = queries[!is.na(queries)],
-                        label = queries[!is.na(queries)],
                         color = color.blue,
                         font = "10px arial #fd7e14")
+    nodes$id <- getNodesId(queries)
+    nodes$label <- getNodesLabel(queries)
     nodes$value <- getNodesValue(data, nodes)
     nodes <- getCoords(queries, nodes)
   } else {
     nodes <- NULL
   }
   return(nodes)
+}
+
+getNodesId <- function(queries) {
+  # Get id (search query) for each node.
+  #
+  # Args: 
+  #   queries: Vector of strings to be used to search for tweets. Queries are allowed to be NA.
+  #   
+  # Returns:
+  #   Data frame column with the id of each node, deteremined from the literal query.
+  ids <- lapply(queries[!is.na(queries)], function(query) {
+    split <- strsplit(query, "\\* ")[[1]]
+    if(length(split) == 2) {
+      split[2]
+    } else {
+      query
+    }
+  })
+  return(ids)
+}
+
+getNodesLabel <- function(queries) {
+  # Get label for each node.
+  #
+  # Args: 
+  #   queries: Vector of strings to be used to search for tweets. Queries are allowed to be NA.
+  #   
+  # Returns:
+  #   Data frame column with the label of each node, deteremined from the literal query.
+  labels <- lapply(queries[!is.na(queries)], function(query) {
+    split <- strsplit(query, "\\* ")[[1]]
+    if(length(split) == 2) {
+      split[1]
+    } else {
+      query
+    }
+  })
+  return(labels)
 }
 
 getNodesValue <- function(data, nodes) {
@@ -50,22 +89,40 @@ getCoords <- function(queries, nodes) {
   #
   # Returns:
   #   Data frame column with the position of each query's node.
-  radius <- 5
-  scale <- 75
-  angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
-  angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[3:2])
-  angles <- unlist(lapply(1:12, function(x) {
-    if(is.na(queries[x])) {
-      NA
+  # radius <- 5
+  # scale <- 75
+  # angles <- rev(seq(0, (3/2)*pi, (2 * pi)/12))
+  # angles <- c(angles, seq((3/2)*pi, 2*pi, (2 * pi)/12)[3:2])
+  # x <- vapply(1:length(queries), function(i){
+  #   if(is.na(queries[[i]])){
+  #     NA
+  #   }
+  #   else if(i <= 12) {
+  #     scale * radius * cos(angles[[i]])
+  #   } else {
+  #     0
+  #   }
+  # }, numeric(1))
+  # y <- vapply(1:length(queries), function(i){
+  #   if(is.na(queries[[i]])){
+  #     NA
+  #   }
+  #   else if(i <= 12) {
+  #     -scale * radius * sin(angles[[i]])
+  #   } else {
+  #     0
+  #   }
+  # }, numeric(1))
+  # nodes$x <- x[!is.na(x)]
+  # nodes$y <- y[!is.na(y)]
+  position <- vapply(1:length(queries), function(i){
+    if(!is.na(queries[[i]])){
+      i
     } else {
-      angles[x]
+      0
     }
-  }))
-  angles <- angles[!is.na(angles)]
-  nodes$x <- rep(0, length(queries[!is.na(queries)]))
-  nodes$y <- rep(0, length(queries[!is.na(queries)]))
-  nodes$x[1:min(12, length(queries[!is.na(queries)]))] <- scale * radius * cos(angles)
-  nodes$y[1:min(12, length(queries[!is.na(queries)]))] <- -scale * radius * sin(angles)
+  }, numeric(1))
+  nodes$position_ <- position[position != 0]
   return(nodes) 
 }
 

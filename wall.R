@@ -9,9 +9,9 @@ UpdateWall <- function(data, queries) {
   #
   # Returns:
   #   List of Shiny HTML columns containing tweet data.
-  col.list <- vector("list", 12)
-  col.list <- lapply(1:12, function(col_num) {
-    if(is.na(queries[col_num])) {
+  col_list <- vector("list", 12)
+  col_list <- lapply(1:12, function(col_num) {
+    if(is.na(queries[[col_num]])) {
       column(width = 1,
              textInput(paste0("text.column.", col_num), label = ""),
              actionButton(paste0("button.column.", col_num), "Submit"))
@@ -20,7 +20,7 @@ UpdateWall <- function(data, queries) {
       UpdateColumn(data_subset, queries, col_num)
     }
   })
-  return(col.list)
+  return(col_list)
 }
 
 UpdateColumn <- function(data_subset, queries, col_num) {
@@ -36,7 +36,7 @@ UpdateColumn <- function(data_subset, queries, col_num) {
   column(width = 1,
          tags$div(includeCSS("wall.css"),
                   fluidRow(
-                    tags$h2(tags$span(class = "clickable", queries[col_num]))
+                    tags$h2(tags$span(class = "clickable", queries[[col_num]]))
                   ),
                   fluidRow(style = 'height: 600px;
                   overflow-y: auto;
