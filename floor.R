@@ -133,12 +133,11 @@ getEdges <- function(data, queries) {
   # 
   # Args:
   #   data: Tibble of tweet data returned by rtweet.
-  #   queries: Vector of strings to be used to search for tweets. Queries are allowed to be NA.
+  #   queries: Vector of strings to be used to search for tweets. Queries are NOT allowed to be NA.
   #
   # Returns:
   #   Data frame in the format:
   #     to  from  index  color 
-  queries <- queries[!is.na(queries)]
   if(nrow(data) != 0) {
     edges <- getToFrom(data)
     if(!is.null(edges)) {

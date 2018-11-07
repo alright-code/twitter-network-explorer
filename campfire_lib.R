@@ -56,10 +56,10 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
                                      token,
                                      serverValues$search_type)
         incProgress(1/3, detail = "Generating Wall", session = d)
-        serverValues$col_list <- UpdateWall(serverValues$data, serverValues$queries)
-        serverValues$edges <- getEdges(serverValues$data, serverValues$queries)
         serverValues$nodes <- getNodes(serverValues$data, serverValues$queries)
-        print(serverValues$nodes)
+        serverValues$edges <- getEdges(serverValues$data, serverValues$nodes$id)
+        serverValues$col_list <- updateWall(serverValues$data, serverValues$nodes)
+        #print(serverValues$nodes)
         incProgress(1/3, detail = "Generating Graph", session = d)
         serverValues$current_node_id = -1
         serverValues$current_edge_index = -1

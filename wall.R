@@ -1,42 +1,42 @@
 # Only call when update on controller is pressed, update every column on the
 # wall sequentially. There will only be gaps at the end
-UpdateWall <- function(data, queries) {
+updateWall <- function(data, nodes) {
   # Creates the output displayed on the campfire wall of tweet columns.
   # 
   # Args:
   #   data: Tibble of tweet data returned by rtweet.
-  #   queries: Vector of strings to be used to search for tweets. Queries are allowed to be NA.
+  #   nodes: Data frame containing node data formatted for visnetwork.
   #
   # Returns:
   #   List of Shiny HTML columns containing tweet data.
   col_list <- vector("list", 12)
   col_list <- lapply(1:12, function(col_num) {
-    if(is.na(queries[[col_num]])) {
+    if(!(col_num %in% nodes$position_)) {
       column(width = 1,
              textInput(paste0("text.column.", col_num), label = ""),
              actionButton(paste0("button.column.", col_num), "Submit"))
     } else {
-      data_subset <- getDataSubset(data, queries[[col_num]])
-      UpdateColumn(data_subset, queries, col_num)
+      current_node_data <- nodes[nodes$position_ == col_num, ]
+      data_subset <- getDataSubset(data, current_node_data$id)
+      UpdateColumn(data_subset, current_node_data, nodes$id)
     }
   })
-  return(col_list)
 }
 
-UpdateColumn <- function(data_subset, queries, col_num) {
+UpdateColumn <- function(data_subset, current_node_data, queries) {
   # Creates a single Shiny HTMl column containing tweet data for specific single query.
   # 
   # Args:
   #   data_subset: Tibble of tweet data subset into a single search query.
-  #   queries: Vector of strings to be used to search for tweets. Queries are allowed to be NA.
-  #   col_num: Column number 1-12 corresponding to the index of the requested single query in query
+  #   current_node_data: Row of nodes data frame with the matching current search query.
+  #   queries: Vector of strings to be used to search for tweets. Queries are NOT allowed to be NA.
   #
   # Returns:
   #   List of Shiny html columns containing tweet data.
   column(width = 1,
          tags$div(includeCSS("wall.css"),
                   fluidRow(
-                    tags$h2(tags$span(class = "clickable", queries[[col_num]]))
+                    tags$h2(tags$span(class = "clickable", current_node_data$label))
                   ),
                   fluidRow(style = 'height: 600px;
                   overflow-y: auto;
@@ -44,7 +44,7 @@ UpdateColumn <- function(data_subset, queries, col_num) {
                            if(nrow(data_subset) > 0) {
                              lapply(1:nrow(data_subset), function(tweet_num) {
                                colored.text <- colorHashtags(data_subset$text[[tweet_num]],
-                                                             queries[!is.na(queries)],
+                                                             queries,
                                                              data_subset$hashtags[[tweet_num]],
                                                              c(data_subset$urls_t.co[[tweet_num]], data_subset$ext_media_t.co[[tweet_num]]),
                                                              data_subset$mentions_screen_name[[tweet_num]])

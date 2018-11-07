@@ -10,7 +10,14 @@ getData <- function(queries, num_tweets, include_rts, token, type) {
   #
   # Returns:
   #   Tibble of tweet search results.
-  queries <- queries[!is.na(queries)]
+  queries <- lapply(queries[!is.na(queries)], function(query) {
+    split <- strsplit(query, "\\* ")[[1]]
+    if(length(split) == 2) {
+      split[2]
+    } else {
+      query
+    }
+  })
   data <- search_tweets2(queries, n = num_tweets, include_rts = include_rts,
                          token = token, type = type, lang = "en", verbose = TRUE)
   return(data)
