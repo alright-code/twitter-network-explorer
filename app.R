@@ -76,7 +76,8 @@ campfireApp(
 
     output$network <- renderVisNetwork({
       if(!is.null(serverValues$nodes)) {
-        visNetwork(serverValues$nodes, serverValues$edges) %>%
+        nodes_with_coords <- getCoords(serverValues$nodes)
+        visNetwork(nodes_with_coords, serverValues$edges) %>%
           visEdges(scaling = list("min" = 0), smooth = list("enabled" = TRUE)) %>%
           visNodes(scaling = list("min" = 10, "max" = 50)) %>%
           # After drawing the network, center on 0,0 to keep position
