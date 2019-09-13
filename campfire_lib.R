@@ -213,7 +213,7 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       # Normal movement, when both nodes are on the edge  
       } else if(start_distance >= 187 && end_distance >= 187) {
         # Change the position of the node moved onto
-        if(from_index != new_index) {
+        if(from_index != to_index) {
           visNetworkProxy("network") %>%
             visMoveNode(to_node, serverValues$start_position[[1]]$x, serverValues$start_position[[1]]$y)
           serverValues$queries[to_index] <- serverValues$current_node_id
