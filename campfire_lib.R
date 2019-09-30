@@ -138,7 +138,8 @@ campfireApp = function(controller = NA, wall = NA, floor = NA, datamonitor = NA,
       serverValues$data_subset <- NULL
       serverValues$data <- serverValues$data %>%
                              filter(query != serverValues$delete_node)
-      serverValues$col_list <- UpdateWall(serverValues$data, serverValues$queries)
+      serverValues$nodes <- getNodes(serverValues$data, serverValues$queries)
+      serverValues$col_list <- updateWall(serverValues$data, serverValues$nodes)
     })
     
     # Observe when text on the wall is clicked, and update query and wall/floor
